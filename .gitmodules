@@ -1,0 +1,9 @@
+[submodule "base-bcu"]
+	path = base-bcu
+	url = https://github.com/M-Welsch/base-bcu.git
+[submodule "base-webapp"]
+	path = base-webapp
+	url = https://github.com/M-Welsch/base-webapp.git
+[submodule "base-sbu"]
+	path = base-sbu
+	url = https://github.com/M-Welsch/base-sbu.git

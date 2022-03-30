@@ -7,3 +7,6 @@
 [submodule "base-sbu"]
 	path = software/base-sbu
 	url = https://github.com/M-Welsch/base-sbu.git
+[submodule "hardware/circuit_boards/base-pcb-power"]
+	path = hardware/circuit_boards/base-pcb-power
+	url = https://github.com/M-Welsch/base-pcb-power.git

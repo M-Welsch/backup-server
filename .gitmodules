@@ -13,3 +13,9 @@
 [submodule "hardware/circuit_boards/base-pcb-hmi"]
 	path = hardware/circuit_boards/base-pcb-hmi
 	url = https://github.com/M-Welsch/base-pcb-hmi.git
+[submodule "hardware/circuit_boards/base-pcb-sata-adapter-carriage"]
+	path = hardware/circuit_boards/base-pcb-sata-adapter-carriage
+	url = https://github.com/M-Welsch/base-pcb-sata-adapter-carriage.git
+[submodule "hardware/circuit_boards/base-pcb-sata-adapter-hdd"]
+	path = hardware/circuit_boards/base-pcb-sata-adapter-hdd
+	url = https://github.com/M-Welsch/base-pcb-sata-adapter-hdd.git

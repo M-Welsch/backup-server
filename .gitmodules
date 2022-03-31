@@ -10,3 +10,6 @@
 [submodule "hardware/circuit_boards/base-pcb-power"]
 	path = hardware/circuit_boards/base-pcb-power
 	url = https://github.com/M-Welsch/base-pcb-power.git
+[submodule "hardware/circuit_boards/base-pcb-hmi"]
+	path = hardware/circuit_boards/base-pcb-hmi
+	url = https://github.com/M-Welsch/base-pcb-hmi.git

@@ -1,3 +1,5 @@
+The following license applies to all submodules as well.
+
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/

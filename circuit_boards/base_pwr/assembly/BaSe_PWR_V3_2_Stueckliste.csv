@@ -1,0 +1,55 @@
+Refs,Value,Footprint,Quantity,MFR,MPN,SPR,SPN
+C1;C16;C6;C7,100nF,Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder,4,-,-,-,399-7845-1-ND 
+C9,10nF,Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder,1,-,-,-, 311-1572-1-ND
+C24,1nF,Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder,1,-,-,-,311-1080-1-ND
+C2;C3;C10;C8;C13;C20;C17,1µF,Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder,7,-,-,Digikey,732-7672-1-ND 
+C11;C4,100µF,Capacitor_SMD:C_1210_3225Metric_Pad1.42x2.65mm_HandSolder,2,-,-,-, 587-1387-1-ND
+C5;C18;C15,10µF,Capacitor_SMD:C_1210_3225Metric_Pad1.42x2.65mm_HandSolder,3,-,-,-,1276-1150-1-ND
+C12,47nF,Capacitor_SMD:C_1210_3225Metric_Pad1.42x2.65mm_HandSolder,1,-,-,Digikey,1276-1150-1-ND
+C19;C14,220µF,Capacitor_SMD:C_Elec_6.3x7.7,2,-,-,-,PCE4537CT-ND 
+J6,B4B-PH-K-S(LF)(SN),Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical,1,JST Sales America Inc.,B4B-PH-K-S(LF)(SN),Digikey,455-1706-ND
+J4,B9B-PH-K-S(LF)(SN),Connector_JST:JST_PH_B9B-PH-K_1x09_P2.00mm_Vertical,1,JST Sales America Inc.,-,Digikey,455-1711-ND
+J2,BPi Supply,Connector_JST:JST_XH_S2B-XH-A_1x02_P2.50mm_Horizontal,1,JST,-,Digikey,455-2257-ND
+D3,824501121,Diode_SMD:D_SMA,1,-,-,Digikey, 732-9949-1-ND
+D4;D5,NO,Diode_SMD:D_SMA,2,-,-,-,-
+D6,NO,Diode_SMD:D_SMC,1,-,-,-,SK64L-TPMSCT-ND
+D2;D1,1N4148,Diode_SMD:D_SOD-123F,2,-,-,-,1N4148WRHGCT-ND 
+F1,Fuse,Fuse:Fuse_Littelfuse-NANO2-451_453,1,-,-,-,F3147CT-ND 
+SCT1,A4988_Module,G7_Custom:A4988_Module,1,-,-,-,-
+FFC_Cable1,0151670333,G7_Custom:BOM_ITEM,1,-,0151670333,Digikey,WM16429-ND
+Cable_HDD_ENDSW_preconfected2,ASPHSPH24K152,G7_Custom:BOM_ITEM,1,-,ASPHSPH24K152,Digikey,455-3082-ND
+Cable_Stepper_preconfected1;Cable_Stepper_preconfected2;Cable_Stepper_preconfected3;Cable_Stepper_preconfected4,ASPHSPH24K51‎ ,G7_Custom:BOM_ITEM,4,-,-,Digikey,‎455-3081-ND‎
+Cable_BPi_SPLY_preconfected2;Cable_BPi_SPLY_preconfected1,ASXHSXH22K51,G7_Custom:BOM_ITEM,2,-,-,Digikey,455-3239-ND
+Conn_Socket_Stepper1,PHR-4,G7_Custom:BOM_ITEM,1,-,-,Digikey,455-1164-ND
+Conn_Socket_at_Stepper1,PHR-6,G7_Custom:BOM_ITEM,1,-,-,Digikey, 455-1162-ND
+Conn_Socket_PWR_HDD1,PHR-9,G7_Custom:BOM_ITEM,1,-,PHR-9,Digikey,455-1159-ND
+Conn_Socket_BPi_SPLY_atJ5;Conn_Socket_BPi_SPLY1,XHP-2,G7_Custom:BOM_ITEM,2,-,-,Digikey,455-2266-ND
+M1,BananaPi_M1,G7_Custom:BananaPi-M1,1,-,-,Digikey, SAM1212-13-ND
+J1,12V Power In,G7_Custom:BarrelJack_Wuerth_6941xx301002,1,-,-,Digikey,CP-102A-ND
+FL1;FL2,CM2021Y330R-10,G7_Custom:CMC_Laird_CM2021Y330R-10,2,-,-,-,240-2502-1-ND
+J5,Molex 0522071860,G7_Custom:Conn_FFC_Molex_52207-1860,1,-,-,-,WM10954CT-ND
+J3,DebugAtTiny,G7_Custom:JST_XH_B4B-XH-AM_1x04_P2.50mm_Vertical,1,-,-,Digikey,455-2237-ND
+U2,LMZ12003,G7_Custom:LMZ12003_Handsolder,1,-,-,-,LMZ12003TZ-ADJ/NOPBCT-ND 
+U4,LTC4359-MS8,G7_Custom:MSOP-8_3x3mm_P0.65mm_Py0.45mm,1, Linear Technology/Analog Devices ,LTC4359CMS8#TRPBF‎ ,Digikey,LTC4359CMS8#TRPBFCT-ND‎
+K1,EC2-12TNU,G7_Custom:Relay_Kemet_EC2-12TNU,1,KEMET,EC2-12TNU,Digikey,399-11031-5-ND
+PCB1,BaSe_PWR_V3_2,G7_Labels:BaSe_PWR_V3_2,1,-,-,-,-
+FB3;FB4;FB5;FB6;FB7;FB10,742792602,Inductor_SMD:L_0603_1608Metric_Pad1.05x0.95mm_HandSolder,6,-,-,Digikey, 732-4660-1-ND
+FB2,742792093,Inductor_SMD:L_0805_2012Metric_Pad1.15x1.40mm_HandSolder,1,-,-,Digikey, 732-1609-1-ND
+H1;H2;H3;H4,MountingHole,MountingHole:MountingHole_2.2mm_M2,4,-,-,-,-
+U5,ATtiny816-S,Package_SO:SOIC-20W_7.5x12.8mm_P1.27mm,1,Microchip Technology,ATTINY816-SFR,Digikey,ATTINY816-SFRCT-ND 
+U3,ADG734,Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm,1,-,-,-,ADG734BRUZ-REEL7CT-ND
+Q2;Q6;Q7,BSS123,Package_TO_SOT_SMD:SOT-23,3,-,-,-,BSS123LT1GOSCT-ND 
+U7,AP2204K-3.3,Package_TO_SOT_SMD:SOT-23-5_HandSoldering,1,-,-,Digikey,AP2204K-3.3TRG1DICT-ND 
+U1,INA212,Package_TO_SOT_SMD:SOT-363_SC-70-6_Handsoldering,1, Texas Instruments ,‎INA212AIDCKT‎,Digikey,296-23586-1-ND
+Q3,BSC028N06LS3,Package_TO_SOT_SMD:TDSON-8-1,1, Infineon Technologies ,‎BSC028N06NSATMA1‎,Digikey,BSC028N06NSATMA1CT-ND‎
+Q4,BSC093N04LS,Package_TO_SOT_SMD:TDSON-8-1,1,-,-,-,BSC093N04LSGATMA1CT-ND
+Q1;Q5,BS170,Package_TO_SOT_THT:TO-92_Inline,2,-,-,-,BS170-D75ZCT-ND
+R13;R23,0,Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder,2,-,-,-,311-47KGRCT-ND 
+FB9,0R,Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder,1,-,-,-,311-47KGRCT-ND 
+Rfbb1,"1,87K",Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder,1,-,-,-,P20001CT-ND 
+Rfbt1;R5;R19,10k,Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder,3,-,-,-,311-10.0KHRCT-ND
+R3,1k,Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder,1,-,-,-,311-1.00KHRCT-ND
+R24;R6;2k4,1k2,Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder,3,-,-,-,A129689CT-ND
+R8;R11;R10;R9;R12;R2;Ron1;R15;R14;R17;2k3;R20;R4;R16;R25,47k,Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder,15,-,-,-,311-47KGRCT-ND 
+R7;R22;R21;R18;R26;R27,NO,Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder,6,-,-,-,311-47KGRCT-ND 
+R1,1m,Resistor_SMD:R_1206_3216Metric_Pad1.42x1.75mm_HandSolder,1,Riedon,CSR1206-0R001F1,Digikey,696-1369-1-ND

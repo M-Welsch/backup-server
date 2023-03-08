@@ -1,0 +1,12 @@
+Designator,Footprint,Quantity,Value,LCSC Part #
+"H1, H2, H3, H4",MountingHole_3.2mm_M3_DIN965,4,MountingHole,
+J1,conn_usbc_socket_RAHPCUC31AU1TR,1,USB_C_Receptacle,
+J3,STEWARD_USB3_A_SS-52000-001,1,USB3_A,
+"J4, J5","TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",2,Screw_Terminal_01x03,
+J6,PinHeader_1x03_P2.54mm_Vertical,1,Conn_01x03,
+J7,conn_usb3bmicro_GSB343K331HR,1,USB3_B_Micro,GSB343K331HR
+P1,Molex_USBC_Plug_1054440011,1,USB_C_Plug,
+R1,0603,1,31k6,
+R2,0603,1,38k3,
+R3,0603,1,10k,
+R5,0603,1,10k,

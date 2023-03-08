@@ -1,4 +1,4 @@
-16776577241755695
+16781362465795695
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -46676,6 +46676,13 @@ Conn_Spring_MaxMill_823-22-016-10-0001101
 16
 16
 G7_Custom
+JST_XH_B4B-XH-AM_1x04_P2.50mm_Vertical
+JST XH series connector, B4B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+4
+4
+G7_Custom
 LED_D3.0mm_9.5mm_Standoff
 LED, diameter 3.0mm, 2 pins
 LED diameter 3.0mm 2 pins
@@ -46686,6 +46693,13 @@ G7_Custom
 LMZ12003_Handsolder
 
 
+0
+8
+8
+G7_Custom
+MSOP-8_3x3mm_P0.65mm_Py0.45mm
+MSOP, 8 Pin (https://www.jedec.org/system/files/docs/mo-187F.pdf variant AA), generated with kicad-footprint-generator ipc_gullwing_generator.py
+MSOP SO
 0
 8
 8
@@ -46731,6 +46745,13 @@ VSSOP-8 3.0 x 3.0
 0
 9
 9
+G7_Custom
+WC1602A_3.5mm_over_PCB
+LCD 16x2 http://www.wincomlcd.com/pdf/WC1602A-SFYLYHTC06.pdf
+LCD 16x2 Alphanumeric 16pin
+0
+20
+16
 G7_Custom
 WC1602A_9.5mm_over_PCB
 LCD 16x2 http://www.wincomlcd.com/pdf/WC1602A-SFYLYHTC06.pdf

@@ -1,0 +1,11 @@
+*.bak
+*-bak
+rescue-backup/
+BackupServer-backups/
+BaSe*backups/
+*.dcm
+*.pdf
+*.step
+*.zip
+*.kicad_prl
+

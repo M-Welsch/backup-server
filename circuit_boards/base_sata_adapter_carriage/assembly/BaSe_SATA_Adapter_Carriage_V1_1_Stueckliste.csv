@@ -1,0 +1,8 @@
+Refs,Value,Footprint,Quantity,MFR,MPN,SPR,SPN
+J5,Conn_01x03,Connector_JST:JST_PH_B3B-PH-K_1x03_P2.00mm_Vertical,1,JST Sales America Inc.,B3B-PH-K-S(LF)(SN),Digikey,455-1705-ND
+J3,Conn_01x09,Connector_JST:JST_PH_B9B-PH-K_1x09_P2.00mm_Vertical,1,JST Sales America Inc.,-,Digikey,455-1711-ND
+Cable_HDD_ENDSW_preconfected1,ASPHSPH24K305,G7_Custom:BOM_ITEM,1,JST Sales America Inc.,-,Digikey,455-3083-ND
+J1,419-10-216-00-006000,G7_Custom:Conn_Spring_Counterpart_MaxMill_823-22-016-10-0001101,1,Mill-Max Manufacturing Corp.,419-10-216-00-006000,Digikey, ED1379-ND
+J4,Conn_01x07_Female,G7_Custom:SATA_Cable_Intake,1,-,-,-,-
+PCB1,BaSe_SATA_Adapter_Carriage_V1_1,G7_Labels:BaSe_SATA_Adapter_Carriage_V1_1,1,-,-,-,-
+H1;H2,MountingHole_Pad,MountingHole:MountingHole_3.2mm_M3_DIN965_Pad,2,-,-,-,-

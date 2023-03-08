@@ -1,0 +1,6 @@
+Refs,Value,Footprint,Quantity,MFR,MPN,SPR,SPN
+X1,SATA_CONNECTOR_FEM,G7_Custom:Conn_SATA_FEM_3M_5622-2222,1,3M,5622-2222-ML,Digikey,3M5557-ND
+J1,821-22-002-10-004101,G7_Custom:Conn_Spring_MaxMill_821-22-002-10-002101,1,Mill-Max Manufacturing Corp.,-,Digikey, ED8201-02-ND
+J2,823-22-014-10-001101,G7_Custom:Conn_Spring_MaxMill_823-22-014-10-001101,1,Max Mill,-,Digikey, ED8176-14-ND
+PCB1,BaSe_SATA_Adapter_HDD_V1_1,G7_Labels:BaSe_SATA_Adapter_HDD_V1_1,1,-,-,-,-
+R1,No,Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder,1,-,-,-,-

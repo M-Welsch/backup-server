@@ -48,12 +48,17 @@
         "solder_paste_margin_ratio": -0.0
       },
       "track_widths": [
-        0.25
+        0.25,
+        1.0
       ],
       "via_dimensions": [
         {
           "diameter": 0.8,
           "drill": 0.4
+        },
+        {
+          "diameter": 1.2,
+          "drill": 0.8
         }
       ]
     },
@@ -273,7 +278,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "BaSe_SATA_Adapter_Carriage_V1_0.kicad_pro",
+    "filename": "BaSe_SATA_Adapter_Carriage_V1_1.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -305,7 +310,7 @@
     "last_paths": {
       "gencad": "",
       "idf": "",
-      "netlist": "BaSe_SATA_Adapter_V1_0.net",
+      "netlist": "",
       "specctra_dsn": "",
       "step": "",
       "vrml": ""
@@ -333,7 +338,7 @@
     "meta": {
       "version": 1
     },
-    "net_format_name": "Pcbnew",
+    "net_format_name": "",
     "ngspice": {
       "fix_include_paths": true,
       "fix_passive_vals": false,
@@ -344,7 +349,7 @@
       "workbook_filename": ""
     },
     "page_layout_descr_file": "",
-    "plot_directory": "./",
+    "plot_directory": "",
     "spice_adjust_passive_values": false,
     "spice_external_command": "spice \"%I\"",
     "subpart_first_id": 65,
@@ -352,7 +357,7 @@
   },
   "sheets": [
     [
-      "0d0bb7b2-a6e5-46d2-9492-a1aa6e5a7b2f",
+      "94c158d1-8503-4553-b511-bf42f506c2a8",
       ""
     ]
   ],

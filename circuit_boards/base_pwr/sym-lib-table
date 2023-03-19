@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "Waberinator_rev1-rescue")(type "Legacy")(uri "C:/Users/MaximilianWelsch/Nextcloud/B_Projekte/2017_11_f001_Waberinator/Elektronik/rev2/Waberinator_rev1-rescue.lib")(options "")(descr "")(disabled))
+  (lib (name "BackupServer-rescue")(type "Legacy")(uri "C:/Users/MaximilianWelsch/Nextcloud/Tonne/p_BackupServer/Hardware/rev3_Platinen/BaSe_PWR_V3_2/BackupServer-rescue.lib")(options "")(descr "")(disabled))
+)

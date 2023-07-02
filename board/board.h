@@ -63,6 +63,7 @@
 #define GPIOA_ARD_A0                0U
 #define GPIOA_ADC1_IN0              0U
 #define GPIOA_ARD_A1                1U
+#define STATOR_SUPPLY_SENSE         1U
 #define GPIOA_ADC1_IN1              1U
 #define GPIOA_ARD_D1                2U
 #define GPIOA_USART2_TX             2U
@@ -72,8 +73,8 @@
 #define GPIOA_ADC1_IN4              4U
 #define GPIOA_LED_GREEN             5U
 #define GPIOA_ARD_D12               6U
-//#define GPIOA_ARD_D11               7U
-//#define GPIOA_ARD_D7                8U
+#define GPIOA_ARD_D11               7U
+#define GPIOA_ARD_D7                8U
 
 #define MOTOR_DRV2                  7U
 #define MOTOR_DRV1                  8U
@@ -90,6 +91,7 @@
 #define GPIOB_ADC1_IN8              0U
 #define GPIOB_PIN1                  1U
 #define GPIOB_PIN2                  2U
+#define nENDSWITCH_UNDOCKED         2U
 #define GPIOB_SWO                   3U
 #define GPIOB_ARD_D3                3U
 #define GPIOB_ARD_D5                4U
@@ -276,15 +278,15 @@
  * PA15 - PIN15                     (input pullup).
  */
 #define VAL_GPIOA_MODER             (PIN_MODE_INPUT(GPIOA_ARD_A0) |         \
-                                     PIN_MODE_INPUT(GPIOA_ARD_A1) |         \
+                                     PIN_MODE_INPUT(STATOR_SUPPLY_SENSE) |         \
                                      PIN_MODE_ALTERNATE(GPIOA_ARD_D1) |     \
                                      PIN_MODE_ALTERNATE(GPIOA_ARD_D0) |     \
                                      PIN_MODE_INPUT(GPIOA_ARD_A2) |         \
                                      PIN_MODE_OUTPUT(GPIOA_LED_GREEN) |     \
                                      PIN_MODE_INPUT(GPIOA_ARD_D12) |        \
                                      PIN_MODE_INPUT(GPIOA_ARD_D11) |        \
-                                     PIN_MODE_INPUT(GPIOA_ARD_D7) |         \
-                                     PIN_MODE_INPUT(GPIOA_ARD_D8) |         \
+                                     PIN_MODE_OUTPUT(MOTOR_DRV1) |         \
+                                     PIN_MODE_OUTPUT(MOTOR_DRV2) |         \
                                      PIN_MODE_INPUT(GPIOA_ARD_D2) |         \
                                      PIN_MODE_INPUT(GPIOA_PIN11) |          \
                                      PIN_MODE_INPUT(GPIOA_PIN12) |          \
@@ -292,7 +294,7 @@
                                      PIN_MODE_ALTERNATE(GPIOA_SWCLK) |      \
                                      PIN_MODE_INPUT(GPIOA_PIN15))
 #define VAL_GPIOA_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOA_ARD_A0) |     \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_ARD_A1) |     \
+                                     PIN_OTYPE_PUSHPULL(STATOR_SUPPLY_SENSE) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOA_ARD_D1) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOA_ARD_D0) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOA_ARD_A2) |     \
@@ -394,7 +396,7 @@
  */
 #define VAL_GPIOB_MODER             (PIN_MODE_INPUT(GPIOB_ARD_A3) |         \
                                      PIN_MODE_INPUT(GPIOB_PIN1) |           \
-                                     PIN_MODE_INPUT(GPIOB_PIN2) |           \
+                                     PIN_MODE_INPUT(nENDSWITCH_UNDOCKED) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_SWO) |        \
                                      PIN_MODE_INPUT(GPIOB_ARD_D5) |         \
                                      PIN_MODE_INPUT(GPIOB_ARD_D4) |         \
@@ -442,7 +444,7 @@
                                      PIN_OSPEED_HIGH(GPIOB_PIN15))
 #define VAL_GPIOB_PUPDR             (PIN_PUPDR_PULLUP(GPIOB_ARD_A3) |       \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN1) |         \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN2) |         \
+                                     PIN_PUPDR_PULLUP(nENDSWITCH_UNDOCKED) |         \
                                      PIN_PUPDR_PULLUP(GPIOB_SWO) |          \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D5) |       \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D4) |       \

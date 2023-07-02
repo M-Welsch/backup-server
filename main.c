@@ -18,17 +18,16 @@
 #include "hal.h"
 #include "rt_test_root.h"
 #include "oslib_test_root.h"
+#include "bcuCommunication.h"
 #include "chprintf.h"
 
-#include "usbcfg.h"
+
 //
 //typedef enum
 //{
 //    stFAIL = 0,     /**< Error, operation fail */
 //    stSUCCESS = 1   /**< Operation success*/
 //} returnCode_e;
-//
-void startUsb(void);
 //
 //typedef enum { running, sleepy, standby, hmi} state_codes_e;
 //
@@ -87,7 +86,7 @@ void startUsb(void);
 //    chprintf(chp, "Log:E:Invalid State transition from %i to %i", cur_state, desired_state);
 //    return cur_state;
 //}
-
+//
 //
 //static THD_WORKING_AREA(statemachineThread, 128);
 //static THD_FUNCTION(Statemachine, arg) {
@@ -108,24 +107,47 @@ void startUsb(void);
 //    }
 //}
 
+volatile uint32_t adc_result = 0;
+
+void adcCbConv(ADCDriver *adcp) {
+  (void)adcp;
+}
+
+static const ADCConversionGroup adcgrpcfg1 = {
+        FALSE,
+        1,
+        adcCbConv,
+        NULL,
+        ADC_CFGR1_CONT | ADC_CFGR1_RES_12BIT,             /* CFGR1 */
+        ADC_TR(0, 0),                                     /* TR */
+        ADC_SMPR_SMP_1P5,                                 /* SMPR */
+        ADC_CHSELR_CHSEL10                                /* CHSELR */
+};
+
 
 static THD_WORKING_AREA(blinkerThread, 128);
 static THD_FUNCTION(Blinker, arg) {
 
   (void)arg;
   chRegSetThreadName("blinker");
-  BaseSequentialStream *chp = (BaseSequentialStream*) &SDU1;
+  //BaseSequentialStream *chp = (BaseSequentialStream*) &SDU1;
+  adcsample_t samples[10];
   while (true) {
+    adcConvert(&ADCD1, &adcgrpcfg1, samples, 1);
     palClearPad(GPIOA, GPIOA_LED_GREEN);
+    //palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
     palClearPad(GPIOA, MOTOR_DRV1);
     palSetPad(GPIOA, MOTOR_DRV2);
     uint32_t endswitch_state = palReadPad(GPIOB, nENDSWITCH_UNDOCKED);
-    chprintf(chp, "Endswitch: %i", endswitch_state);
+
+    //chprintf(chp, "Endswitch: %i, ADC: %i\n", endswitch_state, samples[0]);
     chThdSleepMilliseconds(1000);
+
+
     palSetPad(GPIOA, GPIOA_LED_GREEN);
+    //palSetPad(GPIOB, GPIPB_THT_LED_YELLOW);
     palClearPad(GPIOA, MOTOR_DRV2);
     palSetPad(GPIOA, MOTOR_DRV1);
-    chprintf(chp, "Off");
     chThdSleepMilliseconds(1000);
   }
 }
@@ -141,8 +163,13 @@ int main(void) {
    *   RTOS is active.
    */
   halInit();
+
+  palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
   chSysInit();
-  startUsb();
+  bcuCommunication_init();
+
+  adcStart(&ADCD1, NULL);
+  adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
 
 
     /*
@@ -155,34 +182,12 @@ int main(void) {
    * Normal main() thread activity, in this demo it does nothing except
    * sleeping in a loop and check the button state.
    */
+  uint8_t counter = 0;
+  char buffer[32] = "Hi";
   while (true) {
-    if (!palReadPad(GPIOC, GPIOC_BUTTON)) {
-      test_execute((BaseSequentialStream *)&SD2, &rt_test_suite);
-      test_execute((BaseSequentialStream *)&SD2, &oslib_test_suite);
-    }
     chThdSleepMilliseconds(500);
+    chsnprintf(buffer, 32, "cnt: %i", counter);
+    sendToBcu(buffer);
+    counter++;
   }
-}
-
-void startUsb() {/*
- * Initializes a serial-over-USB CDC driver.
- */
-    sduObjectInit(&SDU1);
-    sduStart(&SDU1, &serusbcfg);
-
-    /*
-     * Activates the USB driver and then the USB bus pull-up on D+.
-     * Note, a delay is inserted in order to not have to disconnect the cable
-     * after a reset.
-     */
-    usbDisconnectBus(serusbcfg.usbp);
-    chThdSleepMilliseconds(1500);
-    usbStart(serusbcfg.usbp, &usbcfg);
-    usbConnectBus(serusbcfg.usbp);
-
-
-    /*
-       * Activates the serial driver 2 using the driver default configuration.
-       */
-    sdStart(&SD2, NULL);
 }

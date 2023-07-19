@@ -6,6 +6,8 @@
 #include "threads.h"
 #include "core_defines.h"
 
+#include "alarmClock.h"
+
 /** @brief mailbox for messages to BaSe BCU */
 mailbox_t bcu_comm_mb;
 msg_t bcu_comm_mb_buffer[BCU_COMM_MB_BUFFER_SIZE];
@@ -42,7 +44,9 @@ static void cmd_led_on(BaseSequentialStream *chp, int argc, char *argv[]) {
   UNUSED_PARAM(chp);
   UNUSED_PARAM(argc);
   UNUSED_PARAM(argv);
-  putIntoOutputMailbox("Led an\n");
+  static char buffer[16];
+  chsnprintf(buffer, 15, "Led is %s", argv[0]);
+  putIntoOutputMailbox(buffer);
   palSetPad(GPIOB, GPIPB_THT_LED_YELLOW);
 }
 
@@ -54,9 +58,19 @@ static void cmd_led_off(BaseSequentialStream *chp, int argc, char *argv[]) {
   palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
 }
 
+static void cmd_current_date(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    static char buffer[64];
+    alarmClock_getDate(buffer);
+    putIntoOutputMailbox(buffer);
+}
+
 static const ShellCommand commands[] = {
         {"led_on", cmd_led_on},
         {"led_off", cmd_led_off},
+        {"current_date", cmd_current_date},
         {NULL, NULL}
 };
 

@@ -19,6 +19,7 @@
 #include "rt_test_root.h"
 #include "oslib_test_root.h"
 #include "bcuCommunication.h"
+#include "alarmClock.h"
 #include "chprintf.h"
 
 
@@ -167,6 +168,7 @@ int main(void) {
   palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
   chSysInit();
   bcuCommunication_init();
+  alarmClock_init();
 
   adcStart(&ADCD1, NULL);
   adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);

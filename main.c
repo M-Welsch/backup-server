@@ -119,17 +119,12 @@ static THD_FUNCTION(Blinker, arg) {
   chRegSetThreadName("blinker");
   while (true) {
     palClearPad(GPIOA, GPIOA_LED_GREEN);
-    //palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
     palClearPad(GPIOA, MOTOR_DRV1);
     palSetPad(GPIOA, MOTOR_DRV2);
-    uint32_t endswitch_state = palReadPad(GPIOB, nENDSWITCH_UNDOCKED);
 
-    //chprintf(chp, "Endswitch: %i, ADC: %i\n", endswitch_state, samples[0]);
     chThdSleepMilliseconds(1000);
 
-
     palSetPad(GPIOA, GPIOA_LED_GREEN);
-    //palSetPad(GPIOB, GPIPB_THT_LED_YELLOW);
     palClearPad(GPIOA, MOTOR_DRV2);
     palSetPad(GPIOA, MOTOR_DRV1);
     chThdSleepMilliseconds(1000);

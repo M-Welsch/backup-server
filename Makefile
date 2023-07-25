@@ -131,6 +131,7 @@ CSRC = $(ALLCSRC) \
        bcuCommunication/threads.c \
        alarmClock/alarmClock.c \
        measurement/measurement.c \
+       docking/docking.c \
        main.c \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -143,10 +144,11 @@ ASMSRC = $(ALLASMSRC)
 # List ASM with preprocessor source files here.
 ASMXSRC = $(ALLXASMSRC)
 
-BASE_INCDIR = ./bcuCommunication \
-		./alarmClock \
-		./measurement \
-		./core_defines
+BASE_INCDIR = ./core_defines \
+			  ./bcuCommunication \
+			  ./alarmClock \
+			  ./measurement \
+			  ./docking
 
 # Inclusion directories.
 INCDIR = $(CONFDIR) $(ALLINC) $(TESTINC) $(BASE_INCDIR)

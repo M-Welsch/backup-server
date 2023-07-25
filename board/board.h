@@ -107,12 +107,12 @@
 #define GPIOB_PIN14                 14U
 #define GPIOB_PIN15                 15U
 
-#define GPIOC_ARD_A5                0U
+#define SW_HDD_ON                0U
 #define GPIOC_ADC1_IN11             0U
-#define GPIOC_ARD_A4                1U
+#define SW_HDD_OFF                1U
 #define GPIOC_ADC1_IN10             1U
-#define GPIOC_PIN2                  2U
-#define GPIOC_PIN3                  3U
+#define SW_SBU_ON                  2U
+#define SW_SBU_OFF                  3U
 #define GPIOC_PIN4                  4U
 #define GPIOC_PIN5                  5U
 #define GPIOC_PIN6                  6U
@@ -511,10 +511,10 @@
  * PC14 - OSC32_IN                  (input floating).
  * PC15 - OSC32_OUT                 (input floating).
  */
-#define VAL_GPIOC_MODER             (PIN_MODE_INPUT(GPIOC_ARD_A5) |         \
-                                     PIN_MODE_INPUT(GPIOC_ARD_A4) |         \
-                                     PIN_MODE_INPUT(GPIOC_PIN2) |           \
-                                     PIN_MODE_INPUT(GPIOC_PIN3) |           \
+#define VAL_GPIOC_MODER             (PIN_MODE_OUTPUT(SW_HDD_ON) |         \
+                                     PIN_MODE_OUTPUT(SW_HDD_OFF) |         \
+                                     PIN_MODE_OUTPUT(SW_SBU_ON) |           \
+                                     PIN_MODE_OUTPUT(SW_SBU_OFF) |           \
                                      PIN_MODE_INPUT(GPIOC_PIN4) |           \
                                      PIN_MODE_INPUT(GPIOC_PIN5) |           \
                                      PIN_MODE_INPUT(GPIOC_PIN6) |           \
@@ -527,10 +527,10 @@
                                      PIN_MODE_INPUT(GPIOC_BUTTON) |         \
                                      PIN_MODE_INPUT(GPIOC_OSC32_IN) |       \
                                      PIN_MODE_INPUT(GPIOC_OSC32_OUT))
-#define VAL_GPIOC_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOC_ARD_A5) |     \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_ARD_A4) |     \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_PIN2) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_PIN3) |       \
+#define VAL_GPIOC_OTYPER            (PIN_OTYPE_PUSHPULL(SW_HDD_ON) |     \
+                                     PIN_OTYPE_PUSHPULL(SW_HDD_OFF) |     \
+                                     PIN_OTYPE_PUSHPULL(SW_SBU_ON) |       \
+                                     PIN_OTYPE_PUSHPULL(SW_SBU_OFF) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN4) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN5) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN6) |       \
@@ -543,10 +543,10 @@
                                      PIN_OTYPE_PUSHPULL(GPIOC_BUTTON) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOC_OSC32_IN) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOC_OSC32_OUT))
-#define VAL_GPIOC_OSPEEDR           (PIN_OSPEED_HIGH(GPIOC_ARD_A5) |        \
-                                     PIN_OSPEED_HIGH(GPIOC_ARD_A4) |        \
-                                     PIN_OSPEED_HIGH(GPIOC_PIN2) |          \
-                                     PIN_OSPEED_HIGH(GPIOC_PIN3) |          \
+#define VAL_GPIOC_OSPEEDR           (PIN_OSPEED_HIGH(SW_HDD_ON) |        \
+                                     PIN_OSPEED_HIGH(SW_HDD_OFF) |        \
+                                     PIN_OSPEED_HIGH(SW_SBU_ON) |          \
+                                     PIN_OSPEED_HIGH(SW_SBU_OFF) |          \
                                      PIN_OSPEED_HIGH(GPIOC_PIN4) |          \
                                      PIN_OSPEED_HIGH(GPIOC_PIN5) |          \
                                      PIN_OSPEED_HIGH(GPIOC_PIN6) |          \
@@ -559,10 +559,10 @@
                                      PIN_OSPEED_HIGH(GPIOC_BUTTON) |        \
                                      PIN_OSPEED_HIGH(GPIOC_OSC32_IN) |      \
                                      PIN_OSPEED_HIGH(GPIOC_OSC32_OUT))
-#define VAL_GPIOC_PUPDR             (PIN_PUPDR_PULLUP(GPIOC_ARD_A5) |       \
-                                     PIN_PUPDR_PULLUP(GPIOC_ARD_A4) |       \
-                                     PIN_PUPDR_PULLUP(GPIOC_PIN2) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_PIN3) |         \
+#define VAL_GPIOC_PUPDR             (PIN_PUPDR_FLOATING(SW_HDD_ON) |       \
+                                     PIN_PUPDR_FLOATING(SW_HDD_OFF) |       \
+                                     PIN_PUPDR_FLOATING(SW_SBU_ON) |         \
+                                     PIN_PUPDR_FLOATING(SW_SBU_OFF) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN4) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN5) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN6) |         \
@@ -575,10 +575,10 @@
                                      PIN_PUPDR_FLOATING(GPIOC_BUTTON) |     \
                                      PIN_PUPDR_FLOATING(GPIOC_OSC32_IN) |   \
                                      PIN_PUPDR_FLOATING(GPIOC_OSC32_OUT))
-#define VAL_GPIOC_ODR               (PIN_ODR_HIGH(GPIOC_ARD_A5) |           \
-                                     PIN_ODR_HIGH(GPIOC_ARD_A4) |           \
-                                     PIN_ODR_HIGH(GPIOC_PIN2) |             \
-                                     PIN_ODR_HIGH(GPIOC_PIN3) |             \
+#define VAL_GPIOC_ODR               (PIN_ODR_LOW(SW_HDD_ON) |           \
+                                     PIN_ODR_LOW(SW_HDD_OFF) |           \
+                                     PIN_ODR_LOW(SW_SBU_ON) |             \
+                                     PIN_ODR_LOW(SW_SBU_OFF) |             \
                                      PIN_ODR_HIGH(GPIOC_PIN4) |             \
                                      PIN_ODR_HIGH(GPIOC_PIN5) |             \
                                      PIN_ODR_HIGH(GPIOC_PIN6) |             \
@@ -591,10 +591,10 @@
                                      PIN_ODR_HIGH(GPIOC_BUTTON) |           \
                                      PIN_ODR_HIGH(GPIOC_OSC32_IN) |         \
                                      PIN_ODR_HIGH(GPIOC_OSC32_OUT))
-#define VAL_GPIOC_AFRL              (PIN_AFIO_AF(GPIOC_ARD_A5, 0U) |        \
-                                     PIN_AFIO_AF(GPIOC_ARD_A4, 0U) |        \
-                                     PIN_AFIO_AF(GPIOC_PIN2, 0U) |          \
-                                     PIN_AFIO_AF(GPIOC_PIN3, 0U) |          \
+#define VAL_GPIOC_AFRL              (PIN_AFIO_AF(SW_HDD_ON, 0U) |        \
+                                     PIN_AFIO_AF(SW_HDD_OFF, 0U) |        \
+                                     PIN_AFIO_AF(SW_SBU_ON, 0U) |          \
+                                     PIN_AFIO_AF(SW_SBU_OFF, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_PIN4, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_PIN5, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_PIN6, 0U) |          \

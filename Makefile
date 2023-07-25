@@ -130,6 +130,7 @@ CSRC = $(ALLCSRC) \
        bcuCommunication/usb.c \
        bcuCommunication/threads.c \
        alarmClock/alarmClock.c \
+       measurement/measurement.c \
        main.c \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -144,6 +145,7 @@ ASMXSRC = $(ALLXASMSRC)
 
 BASE_INCDIR = ./bcuCommunication \
 		./alarmClock \
+		./measurement \
 		./core_defines
 
 # Inclusion directories.

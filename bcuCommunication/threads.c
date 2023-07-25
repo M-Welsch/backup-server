@@ -7,6 +7,7 @@
 #include "core_defines.h"
 
 #include "alarmClock.h"
+#include "measurement.h"
 
 /** @brief mailbox for messages to BaSe BCU */
 mailbox_t bcu_comm_mb;
@@ -67,10 +68,22 @@ static void cmd_current_date(BaseSequentialStream *chp, int argc, char *argv[]) 
     putIntoOutputMailbox(buffer);
 }
 
+static void cmd_get_measurement_values(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    measurementValues_t values;
+    measurement_getValues(&values);
+    static char buffer[64];
+    chsnprintf(buffer, 63, "adc: %i\n", values.adc1);
+    putIntoOutputMailbox(buffer);
+}
+
 static const ShellCommand commands[] = {
         {"led_on", cmd_led_on},
         {"led_off", cmd_led_off},
         {"current_date", cmd_current_date},
+        {"get_measurement_values", cmd_get_measurement_values},
         {NULL, NULL}
 };
 

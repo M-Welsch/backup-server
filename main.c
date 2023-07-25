@@ -21,6 +21,7 @@
 #include "bcuCommunication.h"
 #include "alarmClock.h"
 #include "chprintf.h"
+#include "measurement.h"
 
 
 //
@@ -108,22 +109,7 @@
 //    }
 //}
 
-volatile uint32_t adc_result = 0;
 
-void adcCbConv(ADCDriver *adcp) {
-  (void)adcp;
-}
-
-static const ADCConversionGroup adcgrpcfg1 = {
-        FALSE,
-        1,
-        adcCbConv,
-        NULL,
-        ADC_CFGR1_CONT | ADC_CFGR1_RES_12BIT,             /* CFGR1 */
-        ADC_TR(0, 0),                                     /* TR */
-        ADC_SMPR_SMP_1P5,                                 /* SMPR */
-        ADC_CHSELR_CHSEL10                                /* CHSELR */
-};
 
 
 static THD_WORKING_AREA(blinkerThread, 128);
@@ -131,10 +117,7 @@ static THD_FUNCTION(Blinker, arg) {
 
   (void)arg;
   chRegSetThreadName("blinker");
-  //BaseSequentialStream *chp = (BaseSequentialStream*) &SDU1;
-  adcsample_t samples[10];
   while (true) {
-    adcConvert(&ADCD1, &adcgrpcfg1, samples, 1);
     palClearPad(GPIOA, GPIOA_LED_GREEN);
     //palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
     palClearPad(GPIOA, MOTOR_DRV1);
@@ -169,8 +152,8 @@ int main(void) {
   chSysInit();
   bcuCommunication_init();
   alarmClock_init();
+  measurement_init();
 
-  adcStart(&ADCD1, NULL);
   adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
 
 

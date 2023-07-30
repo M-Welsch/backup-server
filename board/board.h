@@ -107,11 +107,9 @@
 #define GPIOB_PIN14                 14U
 #define GPIOB_PIN15                 15U
 
-#define SW_HDD_ON                0U
-#define GPIOC_ADC1_IN11             0U
-#define SW_HDD_OFF                1U
-#define GPIOC_ADC1_IN10             1U
-#define SW_SBU_ON                  2U
+#define SW_HDD_ON                   0U
+#define SW_HDD_OFF                  1U
+#define SW_SBU_ON                   2U
 #define SW_SBU_OFF                  3U
 #define GPIOC_PIN4                  4U
 #define GPIOC_PIN5                  5U
@@ -208,6 +206,10 @@
 #define LINE_ARD_D15                PAL_LINE(GPIOB, 8U)
 #define LINE_ARD_D14                PAL_LINE(GPIOB, 9U)
 #define LINE_ARD_D6                 PAL_LINE(GPIOB, 10U)
+#define LINE_SW_HDD_ON              PAL_LINE(GPIOC, SW_HDD_ON)
+#define LINE_SW_HDD_OFF             PAL_LINE(GPIOC, SW_HDD_OFF)
+#define LINE_SW_SBC_ON              PAL_LINE(GPIOC, SW_SBU_ON)
+#define LINE_SW_SBC_OFF             PAL_LINE(GPIOC, SW_SBU_OFF)
 #define LINE_ARD_A5                 PAL_LINE(GPIOC, 0U)
 #define LINE_ADC1_IN11              PAL_LINE(GPIOC, 0U)
 #define LINE_ARD_A4                 PAL_LINE(GPIOC, 1U)

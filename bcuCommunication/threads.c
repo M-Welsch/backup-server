@@ -8,6 +8,7 @@
 
 #include "alarmClock.h"
 #include "measurement.h"
+#include "docking.h"
 
 /** @brief mailbox for messages to BaSe BCU */
 mailbox_t bcu_comm_mb;
@@ -88,12 +89,44 @@ static void cmd_get_endswitch(BaseSequentialStream *chp, int argc, char *argv[])
     putIntoOutputMailbox(buffer);
 }
 
+static void cmd_powerHdd(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    powerHdd();
+}
+
+static void cmd_unpowerHdd(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    unpowerHdd();
+}
+
+static void cmd_powerBcu(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    powerBcu();
+}
+
+static void cmd_unpowerBcu(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    unpowerBcu();
+}
+
 static const ShellCommand commands[] = {
-        {"led_on", cmd_led_on},
-        {"led_off", cmd_led_off},
-        {"current_date", cmd_current_date},
+        {"led_on",                 cmd_led_on},
+        {"led_off",                cmd_led_off},
+        {"current_date",           cmd_current_date},
         {"get_measurement_values", cmd_get_measurement_values},
-        {"get_endswitch", cmd_get_endswitch},
+        {"get_endswitch",          cmd_get_endswitch},
+        {"power",                  cmd_powerHdd},
+        {"unpower",                cmd_unpowerHdd},
+        {"power_bcu",              cmd_powerBcu},
+        {"unpower_bcu",            cmd_unpowerBcu},
         {NULL, NULL}
 };
 

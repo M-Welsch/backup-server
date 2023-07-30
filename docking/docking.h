@@ -9,4 +9,7 @@ pcu_returncode_e undock(void);
 pcu_returncode_e powerHdd(void);
 pcu_returncode_e unpowerHdd(void);
 
+pcu_returncode_e powerBcu(void);
+pcu_returncode_e unpowerBcu(void);
+
 #endif //BASE_PCU_DOCKING_H

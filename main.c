@@ -118,15 +118,15 @@ static THD_FUNCTION(Blinker, arg) {
   (void)arg;
   chRegSetThreadName("blinker");
   while (true) {
-    palClearPad(GPIOA, GPIOA_LED_GREEN);
-    palClearPad(GPIOA, MOTOR_DRV1);
-    palSetPad(GPIOA, MOTOR_DRV2);
+//    palClearPad(GPIOA, GPIOA_LED_GREEN);
+//    palClearPad(GPIOA, MOTOR_DRV1);
+//    palSetPad(GPIOA, MOTOR_DRV2);
 
     chThdSleepMilliseconds(1000);
 
-    palSetPad(GPIOA, GPIOA_LED_GREEN);
-    palClearPad(GPIOA, MOTOR_DRV2);
-    palSetPad(GPIOA, MOTOR_DRV1);
+//    palSetPad(GPIOA, GPIOA_LED_GREEN);
+//    palClearPad(GPIOA, MOTOR_DRV2);
+//    palSetPad(GPIOA, MOTOR_DRV1);
     chThdSleepMilliseconds(1000);
   }
 }
@@ -165,7 +165,7 @@ int main(void) {
   uint8_t counter = 0;
   char buffer[32] = "Hi";
   while (true) {
-    chThdSleepMilliseconds(500);
+    chThdSleepMilliseconds(10000);
     chsnprintf(buffer, 32, "cnt: %i", counter);
     sendToBcu(buffer);
     counter++;

@@ -54,23 +54,38 @@ pcu_returncode_e dock(void) {
 }
 
 pcu_returncode_e undock(void) {
-
+    return pcuFAIL;
 }
 
 pcu_returncode_e powerHdd(void) {
-    palSetLine(SW_HDD_ON);
+    palSetLine(LINE_SW_HDD_ON);
     chThdSleepMilliseconds(100);
-    palClearLine(SW_HDD_ON);
+    palClearLine(LINE_SW_HDD_ON);
     measurementValues_t values;
     measurement_getValues(&values);
     return _dockingState(values.stator_supply_sense);
 }
 
 pcu_returncode_e unpowerHdd(void) {
-    palSetLine(SW_HDD_OFF);
+    palSetLine(LINE_SW_HDD_OFF);
     chThdSleepMilliseconds(100);
-    palClearLine(SW_HDD_OFF);
+    palClearLine(LINE_SW_HDD_OFF);
     measurementValues_t values;
     measurement_getValues(&values);
     return _dockingState(values.stator_supply_sense);
 }
+
+pcu_returncode_e powerBcu(void) {
+    palSetLine(LINE_SW_SBC_ON);
+    chThdSleepMilliseconds(100);
+    palClearLine(LINE_SW_SBC_ON);
+    return pcuSUCCESS;
+}
+
+pcu_returncode_e unpowerBcu(void) {
+    palSetLine(LINE_SW_SBC_OFF);
+    chThdSleepMilliseconds(100);
+    palClearLine(LINE_SW_SBC_OFF);
+    return pcuSUCCESS;
+}
+

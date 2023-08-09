@@ -22,6 +22,7 @@
 #include "alarmClock.h"
 #include "chprintf.h"
 #include "measurement.h"
+#include "docking.h"
 
 
 //
@@ -142,12 +143,13 @@ int main(void) {
    *   RTOS is active.
    */
   halInit();
+    dockingInit();
 
-  palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
-  chSysInit();
-  bcuCommunication_init();
-  alarmClock_init();
-  measurement_init();
+    palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
+    chSysInit();
+    bcuCommunication_init();
+    alarmClock_init();
+    measurement_init();
 
   adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
 

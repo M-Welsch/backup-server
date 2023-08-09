@@ -38,3 +38,7 @@ switchState_t measurement_getEndswitch(void) {
         return NOT_PRESSED;
     }
 }
+
+bool measurement_getDocked(void) {
+    return !palReadLine(LINE_nDOCKED);
+}

@@ -2,6 +2,7 @@
 #define BASE_PCU_MEASUREMENT_H
 
 #include <stdint-gcc.h>
+#include <stdbool.h>
 
 typedef struct {
     uint16_t imotor_prot;
@@ -18,5 +19,6 @@ typedef enum {
 void measurement_init(void);
 void measurement_getValues(measurementValues_t *values);
 switchState_t measurement_getEndswitch(void);
+bool measurement_getDocked(void);
 
 #endif //BASE_PCU_MEASUREMENT_H

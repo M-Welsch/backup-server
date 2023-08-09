@@ -117,16 +117,119 @@ static void cmd_unpowerBcu(BaseSequentialStream *chp, int argc, char *argv[]) {
     unpowerBcu();
 }
 
+static void cmd_dock(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    pcu_returncode_e success = dock();
+    if (success == pcuSUCCESS) {
+        putIntoOutputMailbox("docked successfully!");
+    }
+    else {
+        putIntoOutputMailbox("docking failed!");
+    }
+//    testPwm();
+}
+
+static void cmd_undock(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    pcu_returncode_e success = undock();
+    if (success == pcuSUCCESS) {
+        putIntoOutputMailbox("undocked successfully!");
+    }
+    else {
+        putIntoOutputMailbox("undocking failed!");
+    }
+}
+
+static void cmd_get_dockingstate(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    pcu_dockingstate_e dockingState = getDockingState();
+    if (dockingState == pcu_dockingState0_docked) {
+        putIntoOutputMailbox("pcu_dockingState0_docked");
+    }
+    else if (dockingState == pcu_dockingState1_undocked) {
+        putIntoOutputMailbox("pcu_dockingState1_undocked");
+    }
+    else if (dockingState == pcu_dockingState2_allDockedPwrOff) {
+        putIntoOutputMailbox("pcu_dockingState2_allDockedPwrOff");
+    }
+    else if (dockingState == pcu_dockingState3_allDockedPwrOn){
+        putIntoOutputMailbox("pcu_dockingState3_allDockedPwrOn");
+    }
+    else if (dockingState == pcu_dockingState4_allDocked12vOn) {
+        putIntoOutputMailbox("pcu_dockingState4_allDocked12vOn");
+    }
+    else if (dockingState == pcu_dockingState5_allDocked5vOn) {
+        putIntoOutputMailbox("pcu_dockingState5_allDocked5vOn");
+    }
+    else if (dockingState == pcu_dockingState6_5vFloating) {
+        putIntoOutputMailbox("pcu_dockingState6_5vFloating");
+    }
+    else if (dockingState == pcu_dockingState7_12vFloating) {
+        putIntoOutputMailbox("pcu_dockingState7_12vFloating");
+    }
+    else if (dockingState == pcu_dockingState9_inbetween) {
+        putIntoOutputMailbox("pcu_dockingState9_inbetween");
+    }
+    else if (dockingState == pcu_dockingState_unknown){
+        putIntoOutputMailbox("pcu_dockingState_unknown");
+    }
+    else {
+        putIntoOutputMailbox("no idea. This shouldn't happen");
+    }
+}
+
+static void cmd_get_stator_supply_sense(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    measurementValues_t values;
+    measurement_getValues(&values);
+    static char buffer[32];
+    chsnprintf(buffer, 32, "%i", values.stator_supply_sense);
+    putIntoOutputMailbox(buffer);
+}
+
+static void cmd_docking_getCurrentLog(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    uint8_t msgCounter = 0;
+    static char buffer[CURRENT_LOG_BUFFER_SIZE * 5];
+    for(uint16_t strcnt = 0; strcnt < CURRENT_LOG_BUFFER_SIZE * 4; strcnt++) {
+        buffer[strcnt] = '\0';
+    }
+    uint16_t currentValue = 0;
+    for(uint16_t counter = 0; counter < CURRENT_LOG_BUFFER_SIZE; counter++) {
+        currentValue = getFromCurrentLog(counter);
+        if (currentValue == 0) {
+            break;
+        }
+        chsnprintf(buffer, CURRENT_LOG_BUFFER_SIZE * 4, "%s%i,", buffer, getFromCurrentLog(counter));
+    }
+    putIntoOutputMailbox(buffer);
+}
+
 static const ShellCommand commands[] = {
         {"led_on",                 cmd_led_on},
         {"led_off",                cmd_led_off},
         {"current_date",           cmd_current_date},
         {"get_measurement_values", cmd_get_measurement_values},
         {"get_endswitch",          cmd_get_endswitch},
-        {"power",                  cmd_powerHdd},
-        {"unpower",                cmd_unpowerHdd},
+        {"power_hdd",              cmd_powerHdd},
+        {"unpower_hdd",            cmd_unpowerHdd},
         {"power_bcu",              cmd_powerBcu},
         {"unpower_bcu",            cmd_unpowerBcu},
+        {"dock",                   cmd_dock},
+        {"undock",                 cmd_undock},
+        {"get_dockingstate",       cmd_get_dockingstate},
+        {"get_status_supply_sense",cmd_get_stator_supply_sense},
+        {"get_docking_current_log",cmd_docking_getCurrentLog},
         {NULL, NULL}
 };
 

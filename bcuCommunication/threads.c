@@ -1,3 +1,4 @@
+#include <string.h>
 #include "ch.h"
 #include "hal.h"
 #include "usbcfg.h"
@@ -42,164 +43,44 @@ msg_t putIntoOutputMailbox(char* msg) {
 #define SHELL_WA_SIZE   THD_WORKING_AREA_SIZE(2048)
 
 
-static void cmd_led_on(BaseSequentialStream *chp, int argc, char *argv[]) {
-  UNUSED_PARAM(chp);
-  UNUSED_PARAM(argc);
-  UNUSED_PARAM(argv);
-  static char buffer[16];
-  chsnprintf(buffer, 15, "Led is %s", argv[0]);
-  putIntoOutputMailbox(buffer);
-  palSetPad(GPIOB, GPIPB_THT_LED_YELLOW);
-}
-
-static void cmd_led_off(BaseSequentialStream *chp, int argc, char *argv[]) {
-  UNUSED_PARAM(chp);
-  UNUSED_PARAM(argc);
-  UNUSED_PARAM(argv);
-  putIntoOutputMailbox("Led aus\n");
-  palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
-}
-
-static void cmd_current_date(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    static char buffer[64];
-    alarmClock_getDate(buffer);
-    putIntoOutputMailbox(buffer);
-}
-
-static void cmd_get_measurement_values(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    measurementValues_t values;
-    measurement_getValues(&values);
-    static char buffer[64];
-    chsnprintf(buffer, 63, "adc: %i\n", values.stator_supply_sense);
-    putIntoOutputMailbox(buffer);
-}
-
-static void cmd_get_endswitch(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    static char buffer[64];
-    chsnprintf(buffer, 63, "endswitch: %i\n", measurement_getEndswitch());
-    putIntoOutputMailbox(buffer);
-}
-
-static void cmd_powerHdd(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    powerHdd();
-}
-
-static void cmd_unpowerHdd(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    unpowerHdd();
-}
-
-static void cmd_powerBcu(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    powerBcu();
-}
-
-static void cmd_unpowerBcu(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    unpowerBcu();
-}
-
-static void cmd_dock(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    pcu_returncode_e success = dock();
-    if (success == pcuSUCCESS) {
-        putIntoOutputMailbox("docked successfully!");
-    }
-    else {
-        putIntoOutputMailbox("docking failed!");
-    }
-//    testPwm();
-}
-
-static void cmd_undock(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    pcu_returncode_e success = undock();
-    if (success == pcuSUCCESS) {
-        putIntoOutputMailbox("undocked successfully!");
-    }
-    else {
-        putIntoOutputMailbox("undocking failed!");
-    }
-}
-
-static void cmd_get_dockingstate(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
+static void _get_dockingstate(BaseSequentialStream *chp) {
     pcu_dockingstate_e dockingState = getDockingState();
     if (dockingState == pcu_dockingState0_docked) {
-        putIntoOutputMailbox("pcu_dockingState0_docked");
+        chprintf(chp, "pcu_dockingState0_docked");
     }
     else if (dockingState == pcu_dockingState1_undocked) {
-        putIntoOutputMailbox("pcu_dockingState1_undocked");
+        chprintf(chp, "pcu_dockingState1_undocked");
     }
     else if (dockingState == pcu_dockingState2_allDockedPwrOff) {
-        putIntoOutputMailbox("pcu_dockingState2_allDockedPwrOff");
+        chprintf(chp, "pcu_dockingState2_allDockedPwrOff");
     }
     else if (dockingState == pcu_dockingState3_allDockedPwrOn){
-        putIntoOutputMailbox("pcu_dockingState3_allDockedPwrOn");
+        chprintf(chp, "pcu_dockingState3_allDockedPwrOn");
     }
     else if (dockingState == pcu_dockingState4_allDocked12vOn) {
-        putIntoOutputMailbox("pcu_dockingState4_allDocked12vOn");
+        chprintf(chp, "pcu_dockingState4_allDocked12vOn");
     }
     else if (dockingState == pcu_dockingState5_allDocked5vOn) {
-        putIntoOutputMailbox("pcu_dockingState5_allDocked5vOn");
+        chprintf(chp, "pcu_dockingState5_allDocked5vOn");
     }
     else if (dockingState == pcu_dockingState6_5vFloating) {
-        putIntoOutputMailbox("pcu_dockingState6_5vFloating");
+        chprintf(chp, "pcu_dockingState6_5vFloating");
     }
     else if (dockingState == pcu_dockingState7_12vFloating) {
-        putIntoOutputMailbox("pcu_dockingState7_12vFloating");
+        chprintf(chp, "pcu_dockingState7_12vFloating");
     }
     else if (dockingState == pcu_dockingState9_inbetween) {
-        putIntoOutputMailbox("pcu_dockingState9_inbetween");
+        chprintf(chp, "pcu_dockingState9_inbetween");
     }
     else if (dockingState == pcu_dockingState_unknown){
-        putIntoOutputMailbox("pcu_dockingState_unknown");
+        chprintf(chp, "pcu_dockingState_unknown");
     }
     else {
-        putIntoOutputMailbox("no idea. This shouldn't happen");
+        chprintf(chp, "no idea. This shouldn't happen");
     }
 }
 
-static void cmd_get_stator_supply_sense(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    measurementValues_t values;
-    measurement_getValues(&values);
-    static char buffer[32];
-    chsnprintf(buffer, 32, "%i", values.stator_supply_sense);
-    putIntoOutputMailbox(buffer);
-}
-
-static void cmd_docking_getCurrentLog(BaseSequentialStream *chp, int argc, char *argv[]) {
-    UNUSED_PARAM(chp);
-    UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    uint8_t msgCounter = 0;
+static void _getCurrentLog(BaseSequentialStream *chp) {
     static char buffer[CURRENT_LOG_BUFFER_SIZE * 5];
     for(uint16_t strcnt = 0; strcnt < CURRENT_LOG_BUFFER_SIZE * 4; strcnt++) {
         buffer[strcnt] = '\0';
@@ -210,26 +91,186 @@ static void cmd_docking_getCurrentLog(BaseSequentialStream *chp, int argc, char 
         if (currentValue == 0) {
             break;
         }
-        chsnprintf(buffer, CURRENT_LOG_BUFFER_SIZE * 4, "%s%i,", buffer, getFromCurrentLog(counter));
+        chprintf( chp, "%i,", buffer, getFromCurrentLog(counter));
     }
-    putIntoOutputMailbox(buffer);
+}
+
+static inline bool isEqual(const char *buffer, const char *string) {
+    return strcmp((char *) buffer, string) == 0;
+}
+
+static void _get_analog_value(BaseSequentialStream *chp, const char *channel) {
+    measurementValues_t values;
+    measurement_getValues(&values);
+    uint16_t value = 0;
+    if (isEqual(channel, "stator_supply_sense")) {
+        value = values.stator_supply_sense;
+    }
+    else if (isEqual(channel, "imotor_prot")) {
+        value = values.imotor_prot;
+    }
+    else if (isEqual(channel, "vin12_meas")) {
+        value = values.vin12_meas;
+    }
+    else {
+        chprintf(chp, "Error: invalid channel %s\n", channel);
+        return;
+    }
+    chprintf(chp, "%i\n", value);
+}
+
+static void _get_digital_value(BaseSequentialStream *chp, const char *channel) {
+    int digitalValue = 0;
+    if (isEqual(channel, "endswitch")) {
+        digitalValue = measurement_getEndswitch();
+    }
+    else if (isEqual(channel, "docked")) {
+        digitalValue = measurement_getDocked();
+    }
+
+    if (digitalValue) {
+        chprintf(chp, "true\n");
+    }
+    else {
+        chprintf(chp, "false\n");
+    }
+}
+
+static void _argument_missing(BaseSequentialStream *chp) {
+    chprintf(chp, "Error: argument missing\n");
+}
+
+static pcu_returncode_e _power(BaseSequentialStream *chp, int argc, char *argv[]) {
+    if (argc < 2) {
+        _argument_missing(chp);
+        return pcuFAIL;
+    }
+    char *what_to_power = argv[0];
+    char *desired_state = argv[1];
+    bool on = false;
+
+    if (isEqual(desired_state, "on")) {
+        on = true;
+    }
+    else if (isEqual(desired_state, "off")) {
+        on = false;
+    }
+    else {
+        chprintf(chp, "either on or off");
+        return pcuFAIL;
+    }
+
+    if (isEqual(what_to_power, "hdd")) {
+        if (on) {
+            return powerHdd();
+        }
+        else {
+            return unpowerHdd();
+        }
+    }
+    else if (isEqual(what_to_power, "bcu")) {
+        if (on) {
+            return powerBcu();
+        }
+        else {
+            return unpowerBcu();
+        }
+    }
+    else {
+        chprintf(chp, "wtf is %s?\n", what_to_power);
+        return pcuFAIL;
+    }
+}
+
+static void cmd(BaseSequentialStream *chp, int argc, char *argv[]) {
+    if (argc < 1) {
+        _argument_missing(chp);
+        return;
+    }
+    char *command = argv[0];
+    pcu_returncode_e success = pcuFAIL;
+    if (isEqual(command, "dock")) {
+        success = dock();
+    }
+    else if (isEqual(command, "undock")) {
+        success = undock();
+    }
+    else if (isEqual(command, "power")) {
+        success = _power(chp, argc-1, argv+1);
+    }
+    else {
+        chprintf(chp, "invalid command %s\n", command);
+    }
+
+    if (success == pcuSUCCESS) {
+        chprintf(chp, "%s successful\n", command);
+    }
+    else {
+        chprintf(chp, "%s failed\n", command);
+    }
+}
+
+static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
+    if (argc < 1) {
+        _argument_missing(chp);
+        return;
+    }
+    if(isEqual(argv[0], "dockingstate")) {
+        _get_dockingstate(chp);
+    }
+    else if(isEqual(argv[0], "analog")) {
+        if (argc < 2) {
+            _argument_missing(chp);
+            return;
+        }
+        _get_analog_value(chp, argv[1]);
+    }
+    else if (isEqual(argv[0], "digital")) {
+        if (argc < 2) {
+            _argument_missing(chp);
+            return;
+        }
+        _get_digital_value(chp, argv[1]);
+    }
+    else if (isEqual(argv[0], "date")) {
+        static char buffer[64];
+        alarmClock_getDate(buffer);
+        chprintf(chp, "%s\n", buffer);
+    }
+    else if (isEqual(argv[0], "current_log")) {
+        _getCurrentLog(chp);
+    }
+    else {
+        chprintf(chp, "invalid\n");
+    }
+}
+
+static void cmd_set(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    if (argc < 1) {
+        _argument_missing(chp);
+        return;
+    }
+    if(isEqual(argv[0], "date")) {
+        chprintf(chp, "not implemented yet\n");
+    }
+    else {
+        chprintf(chp, "invalid\n");
+    }
+}
+
+static void cmd_testForEcho(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    chprintf(chp, "Echo");
 }
 
 static const ShellCommand commands[] = {
-        {"led_on",                 cmd_led_on},
-        {"led_off",                cmd_led_off},
-        {"current_date",           cmd_current_date},
-        {"get_measurement_values", cmd_get_measurement_values},
-        {"get_endswitch",          cmd_get_endswitch},
-        {"power_hdd",              cmd_powerHdd},
-        {"unpower_hdd",            cmd_unpowerHdd},
-        {"power_bcu",              cmd_powerBcu},
-        {"unpower_bcu",            cmd_unpowerBcu},
-        {"dock",                   cmd_dock},
-        {"undock",                 cmd_undock},
-        {"get_dockingstate",       cmd_get_dockingstate},
-        {"get_status_supply_sense",cmd_get_stator_supply_sense},
-        {"get_docking_current_log",cmd_docking_getCurrentLog},
+        {"get", cmd_get},
+        {"set", cmd_set},
+        {"probe", cmd_testForEcho},
+        {"cmd", cmd},
         {NULL, NULL}
 };
 

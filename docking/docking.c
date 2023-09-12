@@ -4,7 +4,7 @@
 #include "bcuCommunication.h"
 #include "chprintf.h"
 
-static pcu_dockingstate_e dockingState = pcu_dockingState1_undocked;
+static pcu_dockingstate_e dockingState = pcu_dockingState_unknown;
 static float currentLog[CURRENT_LOG_BUFFER_SIZE + 1];
 
 static void pwmpcb(PWMDriver *pwmp) {
@@ -116,6 +116,10 @@ uint16_t getFromCurrentLog(const uint16_t ptr) {
 
 
 pcu_returncode_e dock(void) {
+    getDockingState();  // this updates the global static dockingState
+    if (dockingState != pcu_dockingState1_undocked && dockingState != pcu_dockingState9_inbetween && dockingState != pcu_dockingState_unknown) {
+        return pcuSUCCESS;
+    }
     _clearCurrentLog();
     _motorDocking();
     pcu_returncode_e retval = pcuSUCCESS;
@@ -153,6 +157,9 @@ pcu_returncode_e dock(void) {
 }
 
 pcu_returncode_e undock(void) {
+    if (getDockingState() == pcu_dockingState1_undocked) {
+        return pcuSUCCESS;
+    }
     _clearCurrentLog();
     _motorUndocking();
     pcu_returncode_e retval = pcuSUCCESS;

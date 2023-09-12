@@ -12,8 +12,8 @@ typedef struct {
 } measurementValues_t;
 
 typedef enum {
-    NOT_PRESSED,
-    PRESSED
+    NOT_PRESSED = 0U,
+    PRESSED = 1U
 } switchState_t;
 
 void measurement_init(void);

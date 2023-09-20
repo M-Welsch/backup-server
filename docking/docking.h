@@ -2,6 +2,7 @@
 #define BASE_PCU_DOCKING_H
 
 #include <stdint-gcc.h>
+#include <stdbool.h>
 #include "core_defines.h"
 
 #define MAXIMUM_DOCKING_TIME_1MS_TICKS 2000
@@ -21,6 +22,6 @@ pcu_returncode_e powerBcu(void);
 pcu_returncode_e unpowerBcu(void);
 
 pcu_dockingstate_e getDockingState(void);
-uint16_t getFromCurrentLog(const uint16_t ptr);
+bool getFromCurrentLog(uint16_t *outval, const uint16_t ptr);
 
 #endif //BASE_PCU_DOCKING_H

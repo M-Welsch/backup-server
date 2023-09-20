@@ -5,7 +5,8 @@
 #include "chprintf.h"
 
 static pcu_dockingstate_e dockingState = pcu_dockingState_unknown;
-static float currentLog[CURRENT_LOG_BUFFER_SIZE + 1];
+static uint16_t currentLog[CURRENT_LOG_BUFFER_SIZE + 1];
+static uint32_t currentLogCursor = 0;
 
 static void pwmpcb(PWMDriver *pwmp) {
     (void)pwmp;
@@ -70,7 +71,7 @@ static inline bool _motorOvercurrent(uint16_t motor_current_measurement_value) {
 
 static inline pcu_dockingstate_e _dockingState(uint16_t sense) {
     if (sense > 3300) {
-        if (measurement_getEndswitch() == PRESSED) {
+        if (measurement_getButton(UNDOCKED_ENDSWITCH) == PRESSED) {
             return pcu_dockingState1_undocked;
         }
         else {
@@ -103,15 +104,27 @@ static void _updateDockingState(float *currentValue) {
     dockingState = _dockingState(values.stator_supply_sense);
 }
 
+static void _logValue(uint16_t value) {
+    if (currentLogCursor == CURRENT_LOG_BUFFER_SIZE) {
+        currentLogCursor = 0;
+    }
+    currentLog[currentLogCursor] = value;
+    currentLogCursor++;
+}
 
 static void _clearCurrentLog(void) {
     for (uint16_t ptr = 0; ptr < CURRENT_LOG_BUFFER_SIZE; ptr++) {
-        currentLog[ptr] = 0.0f;
+        currentLog[ptr] = 0;
     }
+    currentLogCursor = 0;
 }
 
-uint16_t getFromCurrentLog(const uint16_t ptr) {
-    return currentLog[ptr];
+bool getFromCurrentLog(uint16_t *outval, const uint16_t ptr) {
+    if (ptr > currentLogCursor) {
+        return false;
+    }
+    *outval = currentLog[ptr];
+    return true;
 }
 
 
@@ -134,7 +147,9 @@ pcu_returncode_e dock(void) {
         counter = MAXIMUM_DOCKING_TIME_1MS_TICKS - countdown;
         measurementValues_t values;
         measurement_getValues(&values);
-        // currentLog[counter] = values.imotor_prot;
+        if (counter % 10 == 0) {
+            _logValue(values.imotor_prot);
+        }
         static uint16_t overcurrent_count = 0;
         if (_motorOvercurrent(values.imotor_prot) && (counter > MAXIMUM_OVERCURRENT_INRUSH_SAMPLES)) {
             overcurrent_count++;
@@ -166,13 +181,15 @@ pcu_returncode_e undock(void) {
     uint16_t countdown = MAXIMUM_DOCKING_TIME_1MS_TICKS;
     uint16_t counter = 0;
     while (countdown) {
-        if (measurement_getEndswitch() == PRESSED) {
+        if (measurement_getButton(UNDOCKED_ENDSWITCH) == PRESSED) {
             break;
         }
         counter = MAXIMUM_DOCKING_TIME_1MS_TICKS - countdown;
         measurementValues_t values;
         measurement_getValues(&values);
-        // currentLog[counter] = values.imotor_prot;
+        if (counter % 10 == 0) {
+            _logValue(values.imotor_prot);
+        }
         static uint16_t overcurrent_count = 0;
         if (_motorOvercurrent(values.imotor_prot) && (counter > MAXIMUM_OVERCURRENT_INRUSH_SAMPLES)) {
             overcurrent_count++;
@@ -192,15 +209,6 @@ pcu_returncode_e undock(void) {
         return pcuTIMEOUT;
     }
     return retval;
-}
-
-pcu_returncode_e undock_(void) {
-    _motorUndocking();
-    while (measurement_getEndswitch() == NOT_PRESSED) {
-        ;
-    }
-    _motorBreak();
-    return pcuSUCCESS;
 }
 
 pcu_returncode_e powerHdd(void) {

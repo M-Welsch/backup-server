@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "ch.h"
 #include "hal.h"
 #include "usbcfg.h"
@@ -46,53 +47,48 @@ msg_t putIntoOutputMailbox(char* msg) {
 static void _get_dockingstate(BaseSequentialStream *chp) {
     pcu_dockingstate_e dockingState = getDockingState();
     if (dockingState == pcu_dockingState0_docked) {
-        chprintf(chp, "pcu_dockingState0_docked");
+        chprintf(chp, "pcu_dockingState0_docked\n");
     }
     else if (dockingState == pcu_dockingState1_undocked) {
-        chprintf(chp, "pcu_dockingState1_undocked");
+        chprintf(chp, "pcu_dockingState1_undocked\n");
     }
     else if (dockingState == pcu_dockingState2_allDockedPwrOff) {
-        chprintf(chp, "pcu_dockingState2_allDockedPwrOff");
+        chprintf(chp, "pcu_dockingState2_allDockedPwrOff\n");
     }
     else if (dockingState == pcu_dockingState3_allDockedPwrOn){
-        chprintf(chp, "pcu_dockingState3_allDockedPwrOn");
+        chprintf(chp, "pcu_dockingState3_allDockedPwrOn\n");
     }
     else if (dockingState == pcu_dockingState4_allDocked12vOn) {
-        chprintf(chp, "pcu_dockingState4_allDocked12vOn");
+        chprintf(chp, "pcu_dockingState4_allDocked12vOn\n");
     }
     else if (dockingState == pcu_dockingState5_allDocked5vOn) {
-        chprintf(chp, "pcu_dockingState5_allDocked5vOn");
+        chprintf(chp, "pcu_dockingState5_allDocked5vOn\n");
     }
     else if (dockingState == pcu_dockingState6_5vFloating) {
-        chprintf(chp, "pcu_dockingState6_5vFloating");
+        chprintf(chp, "pcu_dockingState6_5vFloating\n");
     }
     else if (dockingState == pcu_dockingState7_12vFloating) {
-        chprintf(chp, "pcu_dockingState7_12vFloating");
+        chprintf(chp, "pcu_dockingState7_12vFloating\n");
     }
     else if (dockingState == pcu_dockingState9_inbetween) {
-        chprintf(chp, "pcu_dockingState9_inbetween");
+        chprintf(chp, "pcu_dockingState9_inbetween\n");
     }
     else if (dockingState == pcu_dockingState_unknown){
-        chprintf(chp, "pcu_dockingState_unknown");
+        chprintf(chp, "pcu_dockingState_unknown\n");
     }
     else {
-        chprintf(chp, "no idea. This shouldn't happen");
+        chprintf(chp, "no idea. This shouldn't happen\n");
     }
 }
 
 static void _getCurrentLog(BaseSequentialStream *chp) {
-    static char buffer[CURRENT_LOG_BUFFER_SIZE * 5];
-    for(uint16_t strcnt = 0; strcnt < CURRENT_LOG_BUFFER_SIZE * 4; strcnt++) {
-        buffer[strcnt] = '\0';
-    }
     uint16_t currentValue = 0;
-    for(uint16_t counter = 0; counter < CURRENT_LOG_BUFFER_SIZE; counter++) {
-        currentValue = getFromCurrentLog(counter);
-        if (currentValue == 0) {
-            break;
-        }
-        chprintf( chp, "%i,", buffer, getFromCurrentLog(counter));
+    uint16_t counter = 0;
+    while (getFromCurrentLog(&currentValue, counter)) {
+        chprintf(chp, "%i,", currentValue);
+        counter++;
     }
+    chprintf(chp, "\n");
 }
 
 static inline bool isEqual(const char *buffer, const char *string) {
@@ -122,7 +118,7 @@ static void _get_analog_value(BaseSequentialStream *chp, const char *channel) {
 static void _get_digital_value(BaseSequentialStream *chp, const char *channel) {
     int digitalValue = 0;
     if (isEqual(channel, "endswitch")) {
-        digitalValue = measurement_getEndswitch();
+        digitalValue = measurement_getButton(UNDOCKED_ENDSWITCH);
     }
     else if (isEqual(channel, "docked")) {
         digitalValue = measurement_getDocked();
@@ -210,38 +206,74 @@ static void cmd(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
 }
 
+static void _getDate(BaseSequentialStream *chp, int argc, char *argv[]) {
+    if (argc < 1) {
+        _argument_missing(chp);
+        return;
+    }
+    char *whichDateToGet = argv[0];
+    char buffer[64];
+    RTCDateTime timespec;
+    if (isEqual(whichDateToGet, "now")) {
+        alarmClock_getDateNow(&timespec);
+        alarmClock_RtcDateTimeToStr(buffer, &timespec);
+    }
+    else if (isEqual(whichDateToGet, "wakeup"))  {
+        alarmClock_getDateWakeup(&timespec);
+        alarmClock_RtcDateTimeToStr(buffer, &timespec);
+    }
+
+    chprintf(chp, "%s\n", buffer);
+}
+
+
 static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc < 1) {
         _argument_missing(chp);
         return;
     }
-    if(isEqual(argv[0], "dockingstate")) {
+    const char *whatToGet = argv[0];
+    if(isEqual(whatToGet, "dockingstate")) {
         _get_dockingstate(chp);
     }
-    else if(isEqual(argv[0], "analog")) {
+    else if(isEqual(whatToGet, "analog")) {
         if (argc < 2) {
             _argument_missing(chp);
             return;
         }
         _get_analog_value(chp, argv[1]);
     }
-    else if (isEqual(argv[0], "digital")) {
+    else if (isEqual(whatToGet, "digital")) {
         if (argc < 2) {
             _argument_missing(chp);
             return;
         }
         _get_digital_value(chp, argv[1]);
     }
-    else if (isEqual(argv[0], "date")) {
-        static char buffer[64];
-        alarmClock_getDate(buffer);
-        chprintf(chp, "%s\n", buffer);
+    else if (isEqual(whatToGet, "date")) {
+        _getDate(chp, argc-1, argv+1);
     }
-    else if (isEqual(argv[0], "current_log")) {
+    else if (isEqual(whatToGet, "currentlog")) {
         _getCurrentLog(chp);
     }
     else {
         chprintf(chp, "invalid\n");
+    }
+}
+
+static void _setDate(BaseSequentialStream *chp, int argc, char *argv[]) {
+    if (argc < 6) {
+        _argument_missing(chp);
+        return;
+    }
+    if (isEqual(argv[0], "now")) {
+        RTCDateTime timespec;
+        if (alarmClock_argsToRtcDateTime(&timespec, argc-1, argv+1) == pcuSUCCESS) {
+            alarmClock_setDateNow(&timespec);
+        }
+        else {
+            chprintf(chp, "Conversion Error or so");
+        }
     }
 }
 
@@ -253,7 +285,7 @@ static void cmd_set(BaseSequentialStream *chp, int argc, char *argv[]) {
         return;
     }
     if(isEqual(argv[0], "date")) {
-        chprintf(chp, "not implemented yet\n");
+        _setDate(chp, argc-1, argv+1);
     }
     else {
         chprintf(chp, "invalid\n");

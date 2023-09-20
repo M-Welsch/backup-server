@@ -30,12 +30,12 @@ void measurement_getValues(measurementValues_t *values) {
     values->vin12_meas = samples[2];
 }
 
-switchState_t measurement_getEndswitch(void) {
-    if(!palReadPad(GPIOB, nENDSWITCH_UNDOCKED)) {
-        return PRESSED;
-    }
-    else {
-        return NOT_PRESSED;
+switchState_t measurement_getButton(pushbutton_e pushbutton) {
+    switch(pushbutton) {
+        case UNDOCKED_ENDSWITCH:
+            return !palReadPad(GPIOB, nENDSWITCH_UNDOCKED);
+        default:
+            return AMBIGOUS;
     }
 }
 

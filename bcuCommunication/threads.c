@@ -11,6 +11,7 @@
 #include "alarmClock.h"
 #include "measurement.h"
 #include "docking.h"
+#include "power.h"
 
 /** @brief mailbox for messages to BaSe BCU */
 mailbox_t bcu_comm_mb;
@@ -170,6 +171,14 @@ static pcu_returncode_e _power(BaseSequentialStream *chp, int argc, char *argv[]
         }
         else {
             return unpowerBcu();
+        }
+    }
+    else if (isEqual(what_to_power, "5v")) {
+        if (on) {
+            return power5v();
+        }
+        else {
+            return unpower5v();
         }
     }
     else {

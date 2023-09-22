@@ -132,6 +132,7 @@ CSRC = $(ALLCSRC) \
        alarmClock/alarmClock.c \
        measurement/measurement.c \
        docking/docking.c \
+       power/power.c \
        main.c \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -148,7 +149,8 @@ BASE_INCDIR = ./core_defines \
 			  ./bcuCommunication \
 			  ./alarmClock \
 			  ./measurement \
-			  ./docking
+			  ./docking \
+			  ./power
 
 # Inclusion directories.
 INCDIR = $(CONFDIR) $(ALLINC) $(TESTINC) $(BASE_INCDIR)

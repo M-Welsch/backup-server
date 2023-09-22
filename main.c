@@ -113,36 +113,8 @@
 
 
 
-static THD_WORKING_AREA(blinkerThread, 128);
-static THD_FUNCTION(Blinker, arg) {
-
-  (void)arg;
-  chRegSetThreadName("blinker");
-  while (true) {
-//    palClearPad(GPIOA, GPIOA_LED_GREEN);
-//    palClearPad(GPIOA, MOTOR_DRV1);
-//    palSetPad(GPIOA, MOTOR_DRV2);
-
-    chThdSleepMilliseconds(1000);
-
-//    palSetPad(GPIOA, GPIOA_LED_GREEN);
-//    palClearPad(GPIOA, MOTOR_DRV2);
-//    palSetPad(GPIOA, MOTOR_DRV1);
-    chThdSleepMilliseconds(1000);
-  }
-}
-
-
 int main(void) {
-
-  /*
-   * System initializations.
-   * - HAL initialization, this also initializes the configured device drivers
-   *   and performs the board-specific initializations.
-   * - Kernel initialization, the main() function becomes a thread and the
-   *   RTOS is active.
-   */
-  halInit();
+    halInit();
     dockingInit();
 
     palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
@@ -150,26 +122,9 @@ int main(void) {
     bcuCommunication_init();
     alarmClock_init();
     measurement_init();
+    adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
 
-  adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
-
-
-    /*
-     * Creates the blinker thread.
-     */
-  chThdCreateStatic(blinkerThread, sizeof(blinkerThread), NORMALPRIO, Blinker, NULL);
-//  chThdCreateStatic(statemachineThread, sizeof(statemachineThread), NORMALPRIO, Statemachine, NULL);
-
-  /*
-   * Normal main() thread activity, in this demo it does nothing except
-   * sleeping in a loop and check the button state.
-   */
-  uint8_t counter = 0;
-  char buffer[32] = "Hi";
-  while (true) {
-    chThdSleepMilliseconds(10000);
-    chsnprintf(buffer, 32, "cnt: %i", counter);
-    sendToBcu(buffer);
-    counter++;
-  }
+    while (true) {
+        chThdSleepMilliseconds(10000);
+    }
 }

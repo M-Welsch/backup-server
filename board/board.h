@@ -109,7 +109,7 @@
 #define SW_HDD_OFF                  1U
 #define SW_SBU_ON                   2U
 #define SW_SBU_OFF                  3U
-#define GPIOC_PIN4                  4U
+#define DISABLE_LM2596              4U
 #define GPIOC_PIN5                  5U
 #define GPIOC_PIN6                  6U
 #define GPIOC_ARD_D9                7U
@@ -210,6 +210,7 @@
 #define LINE_SW_HDD_OFF             PAL_LINE(GPIOC, SW_HDD_OFF)
 #define LINE_SW_SBC_ON              PAL_LINE(GPIOC, SW_SBU_ON)
 #define LINE_SW_SBC_OFF             PAL_LINE(GPIOC, SW_SBU_OFF)
+#define LINE_DISABLE_LM2596         PAL_LINE(GPIOC, DISABLE_LM2596)
 #define LINE_ARD_A5                 PAL_LINE(GPIOC, 0U)
 #define LINE_ADC1_IN11              PAL_LINE(GPIOC, 0U)
 #define LINE_ARD_A4                 PAL_LINE(GPIOC, 1U)
@@ -517,7 +518,7 @@
                                      PIN_MODE_OUTPUT(SW_HDD_OFF) |         \
                                      PIN_MODE_OUTPUT(SW_SBU_ON) |           \
                                      PIN_MODE_OUTPUT(SW_SBU_OFF) |           \
-                                     PIN_MODE_INPUT(GPIOC_PIN4) |           \
+                                     PIN_MODE_OUTPUT(DISABLE_LM2596) |           \
                                      PIN_MODE_INPUT(GPIOC_PIN5) |           \
                                      PIN_MODE_INPUT(GPIOC_PIN6) |           \
                                      PIN_MODE_INPUT(GPIOC_ARD_D9) |         \
@@ -533,7 +534,7 @@
                                      PIN_OTYPE_PUSHPULL(SW_HDD_OFF) |     \
                                      PIN_OTYPE_PUSHPULL(SW_SBU_ON) |       \
                                      PIN_OTYPE_PUSHPULL(SW_SBU_OFF) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_PIN4) |       \
+                                     PIN_OTYPE_PUSHPULL(DISABLE_LM2596) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN5) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN6) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_ARD_D9) |     \
@@ -549,7 +550,7 @@
                                      PIN_OSPEED_HIGH(SW_HDD_OFF) |        \
                                      PIN_OSPEED_HIGH(SW_SBU_ON) |          \
                                      PIN_OSPEED_HIGH(SW_SBU_OFF) |          \
-                                     PIN_OSPEED_HIGH(GPIOC_PIN4) |          \
+                                     PIN_OSPEED_HIGH(DISABLE_LM2596) |          \
                                      PIN_OSPEED_HIGH(GPIOC_PIN5) |          \
                                      PIN_OSPEED_HIGH(GPIOC_PIN6) |          \
                                      PIN_OSPEED_HIGH(GPIOC_ARD_D9) |        \
@@ -565,7 +566,7 @@
                                      PIN_PUPDR_FLOATING(SW_HDD_OFF) |       \
                                      PIN_PUPDR_FLOATING(SW_SBU_ON) |         \
                                      PIN_PUPDR_FLOATING(SW_SBU_OFF) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_PIN4) |         \
+                                     PIN_PUPDR_FLOATING(DISABLE_LM2596) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN5) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN6) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_ARD_D9) |       \
@@ -581,7 +582,7 @@
                                      PIN_ODR_LOW(SW_HDD_OFF) |           \
                                      PIN_ODR_LOW(SW_SBU_ON) |             \
                                      PIN_ODR_LOW(SW_SBU_OFF) |             \
-                                     PIN_ODR_HIGH(GPIOC_PIN4) |             \
+                                     PIN_ODR_HIGH(DISABLE_LM2596) |             \
                                      PIN_ODR_HIGH(GPIOC_PIN5) |             \
                                      PIN_ODR_HIGH(GPIOC_PIN6) |             \
                                      PIN_ODR_HIGH(GPIOC_ARD_D9) |           \
@@ -597,7 +598,7 @@
                                      PIN_AFIO_AF(SW_HDD_OFF, 0U) |        \
                                      PIN_AFIO_AF(SW_SBU_ON, 0U) |          \
                                      PIN_AFIO_AF(SW_SBU_OFF, 0U) |          \
-                                     PIN_AFIO_AF(GPIOC_PIN4, 0U) |          \
+                                     PIN_AFIO_AF(DISABLE_LM2596, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_PIN5, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_PIN6, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_ARD_D9, 0U))

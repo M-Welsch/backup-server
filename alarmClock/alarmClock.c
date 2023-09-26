@@ -2,9 +2,26 @@
 #include "hal.h"
 #include "chprintf.h"
 #include "alarmClock.h"
+#include "bcuCommunication.h"
+
+static RTCDateTime date_wakeup;
+static RTCDateTime date_backup;
+
+static void alarmcb(RTCDriver *rtcp, rtcevent_t event) {
+    UNUSED_PARAM(rtcp);
+    RTCDateTime timespec;
+    rtcGetTime(&RTCD1, &timespec);
+    if ((event == RTC_EVENT_ALARM_A) &&
+        (date_wakeup.year == timespec.year) &&
+        (date_wakeup.month == timespec.month))
+    {
+        sendToBcu("Alarm!!");
+    }
+}
 
 void alarmClock_init(void) {
     rtcInit();
+    rtcSetCallback(&RTCD1, alarmcb);
 }
 
 pcu_returncode_e alarmClock_setDateNow(const RTCDateTime* timespec) {
@@ -32,13 +49,15 @@ pcu_returncode_e alarmClock_setDateWakeup(RTCDateTime* timespec) {
     if (timespec == NULL) {
         return pcuFAIL;
     }
-    rtcGetTime(&RTCD1, timespec);
+    date_wakeup = *timespec;
     uint32_t day = timespec->day;
-    uint32_t hour = timespec->millisecond / 3600000U;  // not sure
+    uint32_t hour = timespec->millisecond / 3600000U;
     uint32_t minute = (timespec->millisecond % 3600000U) / 60000U;
     RTCAlarm alarm1 = {
-        RTC_ALRM_DU(day) |
-        RTC_ALRM_HU(hour) |
+        RTC_ALRM_DT(day / 10) |
+        RTC_ALRM_DU(day % 10) |
+        RTC_ALRM_HT(hour / 10) |
+        RTC_ALRM_HU(hour % 10) |
         RTC_ALRM_MNT(minute / 10) |
         RTC_ALRM_MNU(minute % 10) |
         RTC_ALRM_ST(0) |
@@ -53,13 +72,28 @@ pcu_returncode_e alarmClock_getDateWakeup(RTCDateTime* timespec) {
     if (timespec == NULL) {
         return pcuFAIL;
     }
-    rtcGetTime(&RTCD1, timespec);
     RTCAlarm alarmspec;
     rtcGetAlarm(&RTCD1, 0, &alarmspec);
+    uint32_t day_unit = (alarmspec.alrmr & RTC_ALRMAR_DU) >> RTC_ALRMAR_DU_Pos;
+    uint32_t day_ten = (alarmspec.alrmr & RTC_ALRMAR_DT) >> RTC_ALRMAR_DT_Pos;
+    uint32_t minute_ten = (alarmspec.alrmr & RTC_ALRMAR_MNT) >> RTC_ALRMAR_MNT_Pos;
+    uint32_t minute_unit = (alarmspec.alrmr & RTC_ALRMAR_MNU) >> RTC_ALRMAR_MNU_Pos;
+    uint32_t hour_ten = (alarmspec.alrmr & RTC_ALRMAR_HT) >> RTC_ALRMAR_HT_Pos;
+    uint32_t hour_unit = (alarmspec.alrmr & RTC_ALRMAR_HU) >> RTC_ALRMAR_HU_Pos;
+    timespec->day = 10 *day_ten + day_unit;
+    timespec->millisecond = 1000*60*(10*minute_ten + minute_unit) + 1000*3600*(10*hour_ten + hour_unit);
+    timespec->month = date_wakeup.month;
+    timespec->year = date_wakeup.year;
     return pcuSUCCESS;
 }
 
+pcu_returncode_e alarmClock_setDateBackup(const RTCDateTime* timespec) {
+    date_backup = *timespec;
+}
 
+pcu_returncode_e alarmClock_getDateBackup(RTCDateTime* timespec) {
+    *timespec = date_backup;
+}
 
 void alarmClock_getDate(char* buffer) {
     RTCDateTime timespec;

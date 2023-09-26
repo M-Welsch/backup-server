@@ -133,6 +133,7 @@ CSRC = $(ALLCSRC) \
        measurement/measurement.c \
        docking/docking.c \
        power/power.c \
+       statemachine/statemachine.c \
        main.c \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -150,6 +151,7 @@ BASE_INCDIR = ./core_defines \
 			  ./alarmClock \
 			  ./measurement \
 			  ./docking \
+			  ./statemachine \
 			  ./power
 
 # Inclusion directories.

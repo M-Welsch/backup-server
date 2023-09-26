@@ -231,7 +231,13 @@ static void _getDate(BaseSequentialStream *chp, int argc, char *argv[]) {
         alarmClock_getDateWakeup(&timespec);
         alarmClock_RtcDateTimeToStr(buffer, &timespec);
     }
-
+    else if (isEqual(whichDateToGet, "backup")) {
+        alarmClock_getDateBackup(&timespec);
+        alarmClock_RtcDateTimeToStr(buffer, &timespec);
+    }
+    else {
+        chsnprintf(buffer, 64, "no such date as %s", whichDateToGet);
+    }
     chprintf(chp, "%s\n", buffer);
 }
 
@@ -270,19 +276,37 @@ static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
 }
 
+/**
+ * @brief sets different kinds of dates. Those can be "now", "backup" and "wakeup". Details see github issue
+ * @details argv[0] is one of "now", "backup" or "wakeup"
+ *          argv[1] is the year. eg. 2023
+ *          argv[2] is month from 1-12
+ *          argv[3] is the day of month
+ *          argv[4] is the hour
+ *          argv[5] is a minute.
+ *          an example would be "set date wakeup 2023 11 04 12 00" to wake BaSe at 4. Nov. 2023 at 12:00
+ * @param chp
+ * @param argc
+ * @param argv
+ */
 static void _setDate(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc < 6) {
         _argument_missing(chp);
         return;
     }
+    RTCDateTime timespec;
+    if (alarmClock_argsToRtcDateTime(&timespec, argc-1, argv+1) != pcuSUCCESS) {
+        chprintf(chp, "Conversion Error or so");
+    }
+
     if (isEqual(argv[0], "now")) {
-        RTCDateTime timespec;
-        if (alarmClock_argsToRtcDateTime(&timespec, argc-1, argv+1) == pcuSUCCESS) {
-            alarmClock_setDateNow(&timespec);
-        }
-        else {
-            chprintf(chp, "Conversion Error or so");
-        }
+        alarmClock_setDateNow(&timespec);
+    }
+    else if (isEqual(argv[0], "wakeup")) {
+        alarmClock_setDateWakeup(&timespec);
+    }
+    else if (isEqual(argv[0], "backup")) {
+        alarmClock_setDateBackup(&timespec);
     }
 }
 

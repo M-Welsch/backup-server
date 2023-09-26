@@ -15,8 +15,11 @@ pcu_returncode_e alarmClock_RtcDateTimeToStr(char* outstr, const RTCDateTime* ti
 
 pcu_returncode_e alarmClock_setDateNow(const RTCDateTime* timespec);
 pcu_returncode_e alarmClock_getDateNow(RTCDateTime* timespec);
+pcu_returncode_e alarmClock_setDateWakeup(RTCDateTime* timespec);
 pcu_returncode_e alarmClock_getDateWakeup(RTCDateTime* timespec);
 
+pcu_returncode_e alarmClock_setDateBackup(const RTCDateTime* timespec);
+pcu_returncode_e alarmClock_getDateBackup(RTCDateTime* timespec);
 
 
 #endif //BASE_PCU_ALARM_CLOCK_H

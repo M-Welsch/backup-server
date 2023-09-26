@@ -12,6 +12,8 @@
 #include "measurement.h"
 #include "docking.h"
 #include "power.h"
+#include "statemachine.h"
+#include "pcu_events.h"
 
 /** @brief mailbox for messages to BaSe BCU */
 mailbox_t bcu_comm_mb;
@@ -187,6 +189,24 @@ static pcu_returncode_e _power(BaseSequentialStream *chp, int argc, char *argv[]
     }
 }
 
+static pcu_returncode_e _cmdShutdown(BaseSequentialStream *chp, int argc, char *argv[]) {
+    if (argc < 1) {
+        _argument_missing(chp);
+        return pcuFAIL;
+    }
+    const char *init_or_abort = argv[0];
+    if (isEqual(init_or_abort, "init")) {
+        statemachine_sendEvent(EVENT_SHUTDOWN_REQUESTED);
+    }
+    else if (isEqual(init_or_abort, "abort")) {
+        statemachine_sendEvent(EVENT_SHUTDOWN_ABORTED);
+    }
+    else {
+        return pcuFAIL;
+    }
+    return pcuSUCCESS;
+}
+
 static void cmd(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc < 1) {
         _argument_missing(chp);
@@ -202,6 +222,9 @@ static void cmd(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
     else if (isEqual(command, "power")) {
         success = _power(chp, argc-1, argv+1);
+    }
+    else if (isEqual(command, "shutdown")) {
+        success = _cmdShutdown(chp, argc-1, argv+1);
     }
     else {
         chprintf(chp, "invalid command %s\n", command);
@@ -310,6 +333,12 @@ static void _setDate(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
 }
 
+static void _setState(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(argc);
+    UNUSED_PARAM(argv);
+    chprintf(chp, "not implemented\n");
+}
+
 static void cmd_set(BaseSequentialStream *chp, int argc, char *argv[]) {
     UNUSED_PARAM(argc);
     UNUSED_PARAM(argv);
@@ -319,6 +348,9 @@ static void cmd_set(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
     if(isEqual(argv[0], "date")) {
         _setDate(chp, argc-1, argv+1);
+    }
+    else if (isEqual(argv[0], "state")) {
+        _setState(chp, argc-1, argv+1);
     }
     else {
         chprintf(chp, "invalid\n");

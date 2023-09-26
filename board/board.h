@@ -110,8 +110,8 @@
 #define SW_SBU_ON                   2U
 #define SW_SBU_OFF                  3U
 #define DISABLE_LM2596              4U
-#define GPIOC_PIN5                  5U
-#define GPIOC_PIN6                  6U
+#define HMI_PUSHBUTTON_0                  5U
+#define HMI_PUSHBUTTON_1                  6U
 #define GPIOC_ARD_D9                7U
 #define GPIOC_PIN8                  8U
 #define GPIOC_PIN9                  9U
@@ -210,6 +210,8 @@
 #define LINE_SW_HDD_OFF             PAL_LINE(GPIOC, SW_HDD_OFF)
 #define LINE_SW_SBC_ON              PAL_LINE(GPIOC, SW_SBU_ON)
 #define LINE_SW_SBC_OFF             PAL_LINE(GPIOC, SW_SBU_OFF)
+#define LINE_HMI_PUSHUBUTTON_0      PAL_LINE(GPIOC, HMI_PUSHBUTTON_0)
+#define LINE_HMI_PUSHUBUTTON_1      PAL_LINE(GPIOC, HMI_PUSHBUTTON_1)
 #define LINE_DISABLE_LM2596         PAL_LINE(GPIOC, DISABLE_LM2596)
 #define LINE_ARD_A5                 PAL_LINE(GPIOC, 0U)
 #define LINE_ADC1_IN11              PAL_LINE(GPIOC, 0U)
@@ -519,8 +521,8 @@
                                      PIN_MODE_OUTPUT(SW_SBU_ON) |           \
                                      PIN_MODE_OUTPUT(SW_SBU_OFF) |           \
                                      PIN_MODE_OUTPUT(DISABLE_LM2596) |           \
-                                     PIN_MODE_INPUT(GPIOC_PIN5) |           \
-                                     PIN_MODE_INPUT(GPIOC_PIN6) |           \
+                                     PIN_MODE_INPUT(HMI_PUSHBUTTON_0) |           \
+                                     PIN_MODE_INPUT(HMI_PUSHBUTTON_1) |           \
                                      PIN_MODE_INPUT(GPIOC_ARD_D9) |         \
                                      PIN_MODE_INPUT(GPIOC_PIN8) |           \
                                      PIN_MODE_INPUT(GPIOC_PIN9) |           \
@@ -535,8 +537,8 @@
                                      PIN_OTYPE_PUSHPULL(SW_SBU_ON) |       \
                                      PIN_OTYPE_PUSHPULL(SW_SBU_OFF) |       \
                                      PIN_OTYPE_PUSHPULL(DISABLE_LM2596) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_PIN5) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_PIN6) |       \
+                                     PIN_OTYPE_PUSHPULL(HMI_PUSHBUTTON_0) |       \
+                                     PIN_OTYPE_PUSHPULL(HMI_PUSHBUTTON_1) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_ARD_D9) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN8) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN9) |       \
@@ -551,8 +553,8 @@
                                      PIN_OSPEED_HIGH(SW_SBU_ON) |          \
                                      PIN_OSPEED_HIGH(SW_SBU_OFF) |          \
                                      PIN_OSPEED_HIGH(DISABLE_LM2596) |          \
-                                     PIN_OSPEED_HIGH(GPIOC_PIN5) |          \
-                                     PIN_OSPEED_HIGH(GPIOC_PIN6) |          \
+                                     PIN_OSPEED_HIGH(HMI_PUSHBUTTON_0) |          \
+                                     PIN_OSPEED_HIGH(HMI_PUSHBUTTON_1) |          \
                                      PIN_OSPEED_HIGH(GPIOC_ARD_D9) |        \
                                      PIN_OSPEED_HIGH(GPIOC_PIN8) |          \
                                      PIN_OSPEED_HIGH(GPIOC_PIN9) |          \
@@ -567,8 +569,8 @@
                                      PIN_PUPDR_FLOATING(SW_SBU_ON) |         \
                                      PIN_PUPDR_FLOATING(SW_SBU_OFF) |         \
                                      PIN_PUPDR_FLOATING(DISABLE_LM2596) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_PIN5) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_PIN6) |         \
+                                     PIN_PUPDR_PULLUP(HMI_PUSHBUTTON_0) |         \
+                                     PIN_PUPDR_PULLUP(HMI_PUSHBUTTON_1) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_ARD_D9) |       \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN8) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN9) |         \
@@ -583,8 +585,8 @@
                                      PIN_ODR_LOW(SW_SBU_ON) |             \
                                      PIN_ODR_LOW(SW_SBU_OFF) |             \
                                      PIN_ODR_HIGH(DISABLE_LM2596) |             \
-                                     PIN_ODR_HIGH(GPIOC_PIN5) |             \
-                                     PIN_ODR_HIGH(GPIOC_PIN6) |             \
+                                     PIN_ODR_HIGH(HMI_PUSHBUTTON_0) |             \
+                                     PIN_ODR_HIGH(HMI_PUSHBUTTON_1) |             \
                                      PIN_ODR_HIGH(GPIOC_ARD_D9) |           \
                                      PIN_ODR_HIGH(GPIOC_PIN8) |             \
                                      PIN_ODR_HIGH(GPIOC_PIN9) |             \
@@ -599,8 +601,8 @@
                                      PIN_AFIO_AF(SW_SBU_ON, 0U) |          \
                                      PIN_AFIO_AF(SW_SBU_OFF, 0U) |          \
                                      PIN_AFIO_AF(DISABLE_LM2596, 0U) |          \
-                                     PIN_AFIO_AF(GPIOC_PIN5, 0U) |          \
-                                     PIN_AFIO_AF(GPIOC_PIN6, 0U) |          \
+                                     PIN_AFIO_AF(HMI_PUSHBUTTON_0, 0U) |          \
+                                     PIN_AFIO_AF(HMI_PUSHBUTTON_1, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_ARD_D9, 0U))
 #define VAL_GPIOC_AFRH              (PIN_AFIO_AF(GPIOC_PIN8, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_PIN9, 0U) |          \

@@ -3,6 +3,8 @@
 #include "chprintf.h"
 #include "alarmClock.h"
 #include "bcuCommunication.h"
+#include "statemachine.h"
+#include "pcu_events.h"
 
 static RTCDateTime date_wakeup;
 static RTCDateTime date_backup;
@@ -16,6 +18,7 @@ static void alarmcb(RTCDriver *rtcp, rtcevent_t event) {
         (date_wakeup.month == timespec.month))
     {
         sendToBcu("Alarm!!");
+        statemachine_sendEvent(EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK);
     }
 }
 
@@ -89,10 +92,12 @@ pcu_returncode_e alarmClock_getDateWakeup(RTCDateTime* timespec) {
 
 pcu_returncode_e alarmClock_setDateBackup(const RTCDateTime* timespec) {
     date_backup = *timespec;
+    return pcuSUCCESS;
 }
 
 pcu_returncode_e alarmClock_getDateBackup(RTCDateTime* timespec) {
     *timespec = date_backup;
+    return pcuSUCCESS;
 }
 
 void alarmClock_getDate(char* buffer) {

@@ -22,11 +22,7 @@
 #include "alarmClock.h"
 #include "measurement.h"
 #include "docking.h"
-
-
-
-
-
+#include "statemachine.h"
 
 int main(void) {
     halInit();
@@ -37,9 +33,11 @@ int main(void) {
     bcuCommunication_init();
     alarmClock_init();
     measurement_init();
+    statemachine_init();
     adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
 
     while (true) {
+        //statemachine_mainloop();
         chThdSleepMilliseconds(10000);
     }
 }

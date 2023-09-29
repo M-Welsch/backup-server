@@ -5,6 +5,7 @@
 #include "power.h"
 #include "pcu_events.h"
 #include "bcuCommunication.h"
+#include "hal.h"
 
 volatile int _event = 0;
 
@@ -47,15 +48,12 @@ int STATE_SHUTDOWN_REQUESTED_state(void) {
 int STATE_DEEP_SLEEP_state(void) {
     state_codes_e next_state = STATE_DEEP_SLEEP;
     sendToBcu("deep sleep state");
-    eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(1000));
+    eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
     if (evt & EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK) {
         next_state = STATE_ACTIVE;
     }
     else if (evt & (EVENT_BUTTON_0_PRESSED | EVENT_BUTTON_1_PRESSED)) {
         next_state = STATE_HMI;
-    }
-    else {
-        next_state = STATE_ACTIVE;  // just for development!
     }
     return next_state;
 }
@@ -170,11 +168,9 @@ void statemachine_mainloop(void) {
 
 thread_t *uart_thread;
 
-static THD_WORKING_AREA(waUARTThread, 128);
+static THD_WORKING_AREA(waUARTThread, 1024);
 static THD_FUNCTION(UARTThread, arg) {
     UNUSED_PARAM(arg);
-
-    /* Thread activity.*/
     while (true) {
         statemachine_mainloop();
     }
@@ -187,4 +183,10 @@ void statemachine_init(void) {
 
 void statemachine_sendEvent(eventmask_t events) {
     chEvtSignal(uart_thread, events);
+}
+
+void statemachine_sendEventFromIsr(eventmask_t events) {
+    chSysLockFromISR();
+    chEvtSignalI(uart_thread, events);
+    chSysUnlockFromISR();
 }

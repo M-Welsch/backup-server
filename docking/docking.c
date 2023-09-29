@@ -58,10 +58,15 @@ static inline void _motorBreak(void) {
     palSetLine(LINE_MOTOR_DRV2);
 }
 
+static void _motorHiZ(void) {
+    pwmEnableChannel(&PWMD1, 0, PWM_PERCENTAGE_TO_WIDTH(&PWMD1, (pwmcnt_t) 0));
+    palClearLine(LINE_MOTOR_DRV2);
+}
+
 pcu_returncode_e dockingInit(void) {
     pwmStart(&PWMD1, &motorPwmCfg);
     pwmEnablePeriodicNotification(&PWMD1);
-    _motorBreak();
+    _motorHiZ();
     return pcuSUCCESS;
 }
 

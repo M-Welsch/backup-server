@@ -9,6 +9,7 @@
 
 void alarmClock_init(void);
 void alarmClock_getDate(char* buffer);
+bool alarmClock_getWakeup(void);
 
 pcu_returncode_e alarmClock_argsToRtcDateTime(RTCDateTime* timespec, int argc, char *argv[]);
 pcu_returncode_e alarmClock_RtcDateTimeToStr(char* outstr, const RTCDateTime* timespec);

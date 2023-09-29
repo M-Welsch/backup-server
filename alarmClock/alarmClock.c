@@ -9,6 +9,17 @@
 static RTCDateTime date_wakeup;
 static RTCDateTime date_backup;
 
+static bool wakeup = false;
+
+bool alarmClock_getWakeup(void) {
+    if (wakeup) {
+        wakeup = false;
+        statemachine_sendEvent(EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK);
+        return true;
+    }
+    return false;
+}
+
 static void alarmcb(RTCDriver *rtcp, rtcevent_t event) {
     UNUSED_PARAM(rtcp);
     RTCDateTime timespec;
@@ -17,8 +28,9 @@ static void alarmcb(RTCDriver *rtcp, rtcevent_t event) {
         (date_wakeup.year == timespec.year) &&
         (date_wakeup.month == timespec.month))
     {
-        sendToBcu("Alarm!!");
-        statemachine_sendEvent(EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK);
+        //wakeup = true;
+        /* cannot send this directly, cannot send events from within interrupt CBs. This causes system to crash */
+        statemachine_sendEventFromIsr(EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK);
     }
 }
 

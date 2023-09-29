@@ -134,6 +134,7 @@ CSRC = $(ALLCSRC) \
        docking/docking.c \
        power/power.c \
        statemachine/statemachine.c \
+       hmi/hmi.c \
        main.c \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -151,8 +152,9 @@ BASE_INCDIR = ./core_defines \
 			  ./alarmClock \
 			  ./measurement \
 			  ./docking \
+			  ./power \
 			  ./statemachine \
-			  ./power
+			  ./hmi
 
 # Inclusion directories.
 INCDIR = $(CONFDIR) $(ALLINC) $(TESTINC) $(BASE_INCDIR)

@@ -8,6 +8,11 @@
 #include "hal.h"
 
 volatile int _event = 0;
+static wakeup_reason_e wakeup_reason = WAKEUP_REASON_POWER_ON;
+
+wakeup_reason_e statemachine_getWakeupReason(void) {
+    return wakeup_reason;
+}
 
 /**
  * The general architecture is that every state function is blocking and waits for events to happen.
@@ -50,6 +55,7 @@ int STATE_DEEP_SLEEP_state(void) {
     sendToBcu("deep sleep state");
     eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
     if (evt & EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK) {
+        wakeup_reason = WAKEUP_REASON_SCHEDULED;
         next_state = STATE_ACTIVE;
     }
     else if (evt & (EVENT_BUTTON_0_PRESSED | EVENT_BUTTON_1_PRESSED)) {
@@ -63,6 +69,7 @@ int STATE_HMI_state(void) {
     sendToBcu("hmi state");
     eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(60000));
     if (evt & EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK) {
+        wakeup_reason = WAKEUP_REASON_SCHEDULED;
         next_state = STATE_ACTIVE;
     }
     else if (evt & EVENT_BUTTON_0_PRESSED) {

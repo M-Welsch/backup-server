@@ -29,7 +29,6 @@ int main(void) {
     halInit();
     dockingInit();
 
-    palClearPad(GPIOB, GPIPB_THT_LED_YELLOW);
     chSysInit();
     bcuCommunication_init();
     alarmClock_init();
@@ -39,7 +38,6 @@ int main(void) {
     adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
 
     while (true) {
-        alarmClock_getWakeup();
-        chThdSleepMilliseconds(100);
+        chThdSleepMilliseconds(10000);
     }
 }

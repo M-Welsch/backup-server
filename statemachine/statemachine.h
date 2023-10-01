@@ -14,6 +14,13 @@ typedef enum {
   STATE_HMI
 } state_codes_e;
 
+typedef enum {
+  WAKEUP_REASON_POWER_ON,
+  WAKEUP_REASON_USER_REQUEST,
+  WAKEUP_REASON_SCHEDULED
+} wakeup_reason_e;
+
+wakeup_reason_e statemachine_getWakeupReason(void);
 void statemachine_mainloop(void);
 void statemachine_init(void);
 void statemachine_sendEvent(eventmask_t event);

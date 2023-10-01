@@ -264,6 +264,10 @@ static void _getDate(BaseSequentialStream *chp, int argc, char *argv[]) {
     chprintf(chp, "%s\n", buffer);
 }
 
+static pcu_returncode_e _getWakeupReason(BaseSequentialStream *chp) {
+    wakeup_reason_e wakeup_reason = statemachine_getWakeupReason();
+}
+
 
 static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc < 1) {
@@ -273,6 +277,9 @@ static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     const char *whatToGet = argv[0];
     if(isEqual(whatToGet, "dockingstate")) {
         _get_dockingstate(chp);
+    }
+    else if (isEqual(whatToGet, "wakeupreason")) {
+        _getWakeupReason(chp);
     }
     else if(isEqual(whatToGet, "analog")) {
         if (argc < 2) {

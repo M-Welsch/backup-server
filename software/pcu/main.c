@@ -16,8 +16,6 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "rt_test_root.h"
-#include "oslib_test_root.h"
 #include "bcuCommunication.h"
 #include "alarmClock.h"
 #include "measurement.h"
@@ -35,7 +33,8 @@ int main(void) {
     measurement_init();
     statemachine_init();
     hmi_init();
-    adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
+    //adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
+
 
     while (true) {
         chThdSleepMilliseconds(10000);

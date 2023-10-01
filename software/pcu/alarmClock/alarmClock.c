@@ -124,11 +124,10 @@ pcu_returncode_e alarmClock_RtcDateTimeToStr(char* outstr, const RTCDateTime* ti
     if (outstr == NULL || timespec == NULL) {
         return pcuFAIL;
     }
-    chsnprintf(outstr, 61, "%02d:%02d:%02d:%03d - %02d-%02d-%04d",
+    chsnprintf(outstr, 61, "%02d:%02d:%02d - %02d-%02d-%04d",
                timespec->millisecond / 3600000U,
                (timespec->millisecond % 3600000U) / 60000U,
                (timespec->millisecond % 60000U) / 1000U,
-               timespec->millisecond % 1000U,
                timespec->month,
                timespec->day,
                timespec->year + 1980U);

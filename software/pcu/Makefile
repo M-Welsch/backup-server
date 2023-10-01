@@ -134,6 +134,7 @@ CSRC = $(ALLCSRC) \
        docking/docking.c \
        power/power.c \
        statemachine/statemachine.c \
+       hmi/display.c \
        hmi/hmi.c \
        main.c \
 

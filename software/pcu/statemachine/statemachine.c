@@ -1,13 +1,8 @@
-#include "stdint-gcc.h"
-
 #include "statemachine.h"
-#include "ch.h"
 #include "power.h"
 #include "pcu_events.h"
 #include "bcuCommunication.h"
-#include "hal.h"
 
-volatile int _event = 0;
 static wakeup_reason_e wakeup_reason = WAKEUP_REASON_POWER_ON;
 
 wakeup_reason_e statemachine_getWakeupReason(void) {
@@ -39,7 +34,7 @@ int STATE_ACTIVE_state(void) {
  */
 int STATE_SHUTDOWN_REQUESTED_state(void) {
     state_codes_e next_state = STATE_DEEP_SLEEP;
-    sendToBcu("shutdown_requesed state");
+    sendToBcu("shutdown_requested state");
     eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(5000));
     if (evt & (EVENT_SHUTDOWN_ABORTED | EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK )) {
         next_state = STATE_ACTIVE;
@@ -52,10 +47,14 @@ int STATE_SHUTDOWN_REQUESTED_state(void) {
  */
 int STATE_DEEP_SLEEP_state(void) {
     state_codes_e next_state = STATE_DEEP_SLEEP;
-    sendToBcu("deep sleep state");
+    sendToBcu("deep_sleep state");
     eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
     if (evt & EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK) {
         wakeup_reason = WAKEUP_REASON_SCHEDULED;
+        next_state = STATE_ACTIVE;
+    }
+    else if (evt & EVENT_WAKEUP_REQUESTED_BY_USER) {
+        wakeup_reason = WAKEUP_REASON_USER_REQUEST;
         next_state = STATE_ACTIVE;
     }
     else if (evt & (EVENT_BUTTON_0_PRESSED | EVENT_BUTTON_1_PRESSED)) {
@@ -77,6 +76,10 @@ int STATE_HMI_state(void) {
     }
     else if (evt & EVENT_BUTTON_1_PRESSED) {
         sendToBcu("Button 1 pressed");
+    }
+    else if (evt & EVENT_WAKEUP_REQUESTED_BY_USER) {
+        wakeup_reason = WAKEUP_REASON_USER_REQUEST;
+        next_state = STATE_ACTIVE;
     }
     return next_state;
 }
@@ -162,6 +165,8 @@ void statemachine_mainloop(void) {
     int (* state_fun)(void);
     state_codes_e current_state = ENTRY_STATE;
     state_codes_e desired_state = ENTRY_STATE;
+
+    power5v();  // necessary to turn it on initially
 
     while(true) {
         state_fun = state[current_state];

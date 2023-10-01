@@ -87,8 +87,8 @@
 #define GPIOA_SWCLK                 14U
 #define GPIOA_PIN15                 15U
 
-#define GPIOB_ARD_A3                0U
-#define GPIOB_PIN1                  1U
+#define HMI_PWM0_DISPLAY                0U
+#define HMI_PWM1_LED                  1U
 #define GPIOB_PIN2                  2U
 #define nENDSWITCH_UNDOCKED         2U
 #define GPIOB_SWO                   3U
@@ -98,12 +98,12 @@
 #define GPIOB_PIN7                  7U
 #define nDOCKED_SENSE2               8U
 #define nDOCKED_SENSE               9U
-#define GPIPB_THT_LED_YELLOW        10U
-#define GPIOB_PIN11                 11U
-#define GPIOB_PIN12                 12U
-#define GPIOB_PIN13                 13U
-#define GPIOB_PIN14                 14U
-#define GPIOB_PIN15                 15U
+#define HMI_USART_TX3_DISPLAY_RS        10U
+#define HMI_USART_RX3_DISPLAY_E                 11U
+#define HMI_NSS2_DISPLAY_DB4                 12U
+#define HMI_SCK2_SCL2_DISPLAY_DB5                 13U
+#define HMI_MISO2_SDA2_DISPLAY_DB6                 14U
+#define HMI_MOSI2_DISPLAY_DB7                 15U
 
 #define SW_HDD_ON                   0U
 #define SW_HDD_OFF                  1U
@@ -223,6 +223,18 @@
 #define LINE_OSC32_OUT              PAL_LINE(GPIOC, 15U)
 #define LINE_OSC_IN                 PAL_LINE(GPIOF, 0U)
 #define LINE_OSC_OUT                PAL_LINE(GPIOF, 1U)
+
+
+#define LINE_HMI_PWM0_DISPLAY               PAL_LINE(GPIOB, HMI_PWM0_DISPLAY)
+#define LINE_HMI_PWM1_LED                   PAL_LINE(GPIOB, HMI_PWM1_LED)
+#define LINE_HMI_USART_TX3_DISPLAY_RS       PAL_LINE(GPIOB, HMI_USART_TX3_DISPLAY_RS)
+#define LINE_HMI_USART_RX3_DISPLAY_E        PAL_LINE(GPIOB, HMI_USART_RX3_DISPLAY_E)
+#define LINE_HMI_NSS2_DISPLAY_DB4           PAL_LINE(GPIOB, HMI_NSS2_DISPLAY_DB4)
+#define LINE_HMI_SCK2_SCL2_DISPLAY_DB5      PAL_LINE(GPIOB, HMI_SCK2_SCL2_DISPLAY_DB5)
+#define LINE_HMI_MISO2_SDA2_DISPLAY_DB6     PAL_LINE(GPIOB, HMI_MISO2_SDA2_DISPLAY_DB6)
+#define LINE_HMI_MOSI2_DISPLAY_DB7          PAL_LINE(GPIOB, HMI_MOSI2_DISPLAY_DB7)
+
+
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
@@ -399,8 +411,8 @@
  * PB14 - PIN14                     (input pullup).
  * PB15 - PIN15                     (input pullup).
  */
-#define VAL_GPIOB_MODER             (PIN_MODE_INPUT(GPIOB_ARD_A3) |         \
-                                     PIN_MODE_INPUT(GPIOB_PIN1) |           \
+#define VAL_GPIOB_MODER             (PIN_MODE_OUTPUT(HMI_PWM0_DISPLAY) |         \
+                                     PIN_MODE_OUTPUT(HMI_PWM1_LED) |           \
                                      PIN_MODE_INPUT(nENDSWITCH_UNDOCKED) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_SWO) |        \
                                      PIN_MODE_INPUT(GPIOB_ARD_D5) |         \
@@ -409,14 +421,14 @@
                                      PIN_MODE_INPUT(GPIOB_PIN7) |           \
                                      PIN_MODE_INPUT(nDOCKED_SENSE2) |        \
                                      PIN_MODE_INPUT(nDOCKED_SENSE) |        \
-                                     PIN_MODE_OUTPUT(GPIPB_THT_LED_YELLOW) |         \
-                                     PIN_MODE_INPUT(GPIOB_PIN11) |          \
-                                     PIN_MODE_INPUT(GPIOB_PIN12) |          \
-                                     PIN_MODE_INPUT(GPIOB_PIN13) |          \
-                                     PIN_MODE_INPUT(GPIOB_PIN14) |          \
-                                     PIN_MODE_INPUT(GPIOB_PIN15))
-#define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_ARD_A3) |     \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN1) |       \
+                                     PIN_MODE_OUTPUT(HMI_USART_TX3_DISPLAY_RS) |         \
+                                     PIN_MODE_OUTPUT(HMI_USART_RX3_DISPLAY_E) |          \
+                                     PIN_MODE_OUTPUT(HMI_NSS2_DISPLAY_DB4) |          \
+                                     PIN_MODE_OUTPUT(HMI_SCK2_SCL2_DISPLAY_DB5) |          \
+                                     PIN_MODE_OUTPUT(HMI_MISO2_SDA2_DISPLAY_DB6) |          \
+                                     PIN_MODE_OUTPUT(HMI_MOSI2_DISPLAY_DB7))
+#define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(HMI_PWM0_DISPLAY) |     \
+                                     PIN_OTYPE_PUSHPULL(HMI_PWM1_LED) |       \
                                      PIN_OTYPE_PUSHPULL(nENDSWITCH_UNDOCKED) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_SWO) |        \
                                      PIN_OTYPE_PUSHPULL(GPIOB_ARD_D5) |     \
@@ -425,14 +437,14 @@
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN7) |       \
                                      PIN_OTYPE_PUSHPULL(nDOCKED_SENSE2) |    \
                                      PIN_OTYPE_PUSHPULL(nDOCKED_SENSE) |    \
-                                     PIN_OTYPE_PUSHPULL(GPIPB_THT_LED_YELLOW) |     \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN11) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN12) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN13) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN14) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN15))
-#define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_HIGH(GPIOB_ARD_A3) |        \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN1) |          \
+                                     PIN_OTYPE_PUSHPULL(HMI_USART_TX3_DISPLAY_RS) |     \
+                                     PIN_OTYPE_PUSHPULL(HMI_USART_RX3_DISPLAY_E) |      \
+                                     PIN_OTYPE_PUSHPULL(HMI_NSS2_DISPLAY_DB4) |      \
+                                     PIN_OTYPE_PUSHPULL(HMI_SCK2_SCL2_DISPLAY_DB5) |      \
+                                     PIN_OTYPE_PUSHPULL(HMI_MISO2_SDA2_DISPLAY_DB6) |      \
+                                     PIN_OTYPE_PUSHPULL(HMI_MOSI2_DISPLAY_DB7))
+#define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_HIGH(HMI_PWM0_DISPLAY) |        \
+                                     PIN_OSPEED_MEDIUM(HMI_PWM1_LED) |          \
                                      PIN_OSPEED_HIGH(GPIOB_PIN2) |          \
                                      PIN_OSPEED_HIGH(GPIOB_SWO) |           \
                                      PIN_OSPEED_HIGH(GPIOB_ARD_D5) |        \
@@ -441,14 +453,14 @@
                                      PIN_OSPEED_HIGH(GPIOB_PIN7) |          \
                                      PIN_OSPEED_HIGH(nDOCKED_SENSE2) |       \
                                      PIN_OSPEED_HIGH(nDOCKED_SENSE) |       \
-                                     PIN_OSPEED_HIGH(GPIPB_THT_LED_YELLOW) |        \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN11) |         \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN12) |         \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN13) |         \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN14) |         \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN15))
-#define VAL_GPIOB_PUPDR             (PIN_PUPDR_PULLUP(GPIOB_ARD_A3) |       \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN1) |         \
+                                     PIN_OSPEED_MEDIUM(HMI_USART_TX3_DISPLAY_RS) |        \
+                                     PIN_OSPEED_MEDIUM(HMI_USART_RX3_DISPLAY_E) |         \
+                                     PIN_OSPEED_MEDIUM(HMI_NSS2_DISPLAY_DB4) |         \
+                                     PIN_OSPEED_MEDIUM(HMI_SCK2_SCL2_DISPLAY_DB5) |         \
+                                     PIN_OSPEED_MEDIUM(HMI_MISO2_SDA2_DISPLAY_DB6) |         \
+                                     PIN_OSPEED_MEDIUM(HMI_MOSI2_DISPLAY_DB7))
+#define VAL_GPIOB_PUPDR             (PIN_PUPDR_PULLUP(HMI_PWM0_DISPLAY) |       \
+                                     PIN_PUPDR_FLOATING(HMI_PWM1_LED) |         \
                                      PIN_PUPDR_PULLUP(nENDSWITCH_UNDOCKED) |         \
                                      PIN_PUPDR_PULLUP(GPIOB_SWO) |          \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D5) |       \
@@ -457,14 +469,14 @@
                                      PIN_PUPDR_PULLUP(GPIOB_PIN7) |         \
                                      PIN_PUPDR_PULLUP(nDOCKED_SENSE2) |      \
                                      PIN_PUPDR_PULLUP(nDOCKED_SENSE) |      \
-                                     PIN_PUPDR_FLOATING(GPIPB_THT_LED_YELLOW) |       \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN11) |        \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN12) |        \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN13) |        \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN14) |        \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN15))
-#define VAL_GPIOB_ODR               (PIN_ODR_HIGH(GPIOB_ARD_A3) |           \
-                                     PIN_ODR_HIGH(GPIOB_PIN1) |             \
+                                     PIN_PUPDR_FLOATING(HMI_USART_TX3_DISPLAY_RS) |       \
+                                     PIN_PUPDR_FLOATING(HMI_USART_RX3_DISPLAY_E) |        \
+                                     PIN_PUPDR_FLOATING(HMI_NSS2_DISPLAY_DB4) |        \
+                                     PIN_PUPDR_FLOATING(HMI_SCK2_SCL2_DISPLAY_DB5) |        \
+                                     PIN_PUPDR_FLOATING(HMI_MISO2_SDA2_DISPLAY_DB6) |        \
+                                     PIN_PUPDR_FLOATING(HMI_MOSI2_DISPLAY_DB7))
+#define VAL_GPIOB_ODR               (PIN_ODR_LOW(HMI_PWM0_DISPLAY) |           \
+                                     PIN_ODR_LOW(HMI_PWM1_LED) |             \
                                      PIN_ODR_HIGH(GPIOB_PIN2) |             \
                                      PIN_ODR_HIGH(GPIOB_SWO) |              \
                                      PIN_ODR_HIGH(GPIOB_ARD_D5) |           \
@@ -473,14 +485,14 @@
                                      PIN_ODR_HIGH(GPIOB_PIN7) |             \
                                      PIN_ODR_HIGH(nDOCKED_SENSE2) |          \
                                      PIN_ODR_HIGH(nDOCKED_SENSE) |          \
-                                     PIN_ODR_HIGH(GPIPB_THT_LED_YELLOW) |           \
-                                     PIN_ODR_HIGH(GPIOB_PIN11) |            \
-                                     PIN_ODR_HIGH(GPIOB_PIN12) |            \
-                                     PIN_ODR_HIGH(GPIOB_PIN13) |            \
-                                     PIN_ODR_HIGH(GPIOB_PIN14) |            \
-                                     PIN_ODR_HIGH(GPIOB_PIN15))
-#define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_ARD_A3, 0U) |        \
-                                     PIN_AFIO_AF(GPIOB_PIN1, 0U) |          \
+                                     PIN_ODR_LOW(HMI_USART_TX3_DISPLAY_RS) |           \
+                                     PIN_ODR_LOW(HMI_USART_RX3_DISPLAY_E) |            \
+                                     PIN_ODR_LOW(HMI_NSS2_DISPLAY_DB4) |            \
+                                     PIN_ODR_LOW(HMI_SCK2_SCL2_DISPLAY_DB5) |            \
+                                     PIN_ODR_LOW(HMI_MISO2_SDA2_DISPLAY_DB6) |            \
+                                     PIN_ODR_LOW(HMI_MOSI2_DISPLAY_DB7))
+#define VAL_GPIOB_AFRL              (PIN_AFIO_AF(HMI_PWM0_DISPLAY, 0U) |        \
+                                     PIN_AFIO_AF(HMI_PWM1_LED, 0U) |          \
                                      PIN_AFIO_AF(GPIOB_PIN2, 0U) |          \
                                      PIN_AFIO_AF(GPIOB_SWO, 0U) |           \
                                      PIN_AFIO_AF(GPIOB_ARD_D5, 0U) |        \
@@ -489,12 +501,12 @@
                                      PIN_AFIO_AF(GPIOB_PIN7, 0U))
 #define VAL_GPIOB_AFRH              (PIN_AFIO_AF(nDOCKED_SENSE2, 0U) |       \
                                      PIN_AFIO_AF(nDOCKED_SENSE, 0U) |       \
-                                     PIN_AFIO_AF(GPIPB_THT_LED_YELLOW, 0U) |        \
-                                     PIN_AFIO_AF(GPIOB_PIN11, 0U) |         \
-                                     PIN_AFIO_AF(GPIOB_PIN12, 0U) |         \
-                                     PIN_AFIO_AF(GPIOB_PIN13, 0U) |         \
-                                     PIN_AFIO_AF(GPIOB_PIN14, 0U) |         \
-                                     PIN_AFIO_AF(GPIOB_PIN15, 0U))
+                                     PIN_AFIO_AF(HMI_USART_TX3_DISPLAY_RS, 0U) |        \
+                                     PIN_AFIO_AF(HMI_USART_RX3_DISPLAY_E, 0U) |         \
+                                     PIN_AFIO_AF(HMI_NSS2_DISPLAY_DB4, 0U) |         \
+                                     PIN_AFIO_AF(HMI_SCK2_SCL2_DISPLAY_DB5, 0U) |         \
+                                     PIN_AFIO_AF(HMI_MISO2_SDA2_DISPLAY_DB6, 0U) |         \
+                                     PIN_AFIO_AF(HMI_MOSI2_DISPLAY_DB7, 0U))
 
 /*
  * GPIOC setup:

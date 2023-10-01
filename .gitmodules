@@ -1,0 +1,6 @@
+[submodule "software/pcu/ChibiOS"]
+	path = software/pcu/ChibiOS
+	url = git@github.com:ChibiOS/ChibiOS.git
+[submodule "software/pcu/ChibiOS-Contrib"]
+	path = software/pcu/ChibiOS-Contrib
+	url = git@github.com:ChibiOS/ChibiOS-Contrib.git

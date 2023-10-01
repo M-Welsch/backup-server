@@ -14,6 +14,8 @@
 #include "power.h"
 #include "statemachine.h"
 #include "pcu_events.h"
+#include "display.h"
+#include "hmi.h"
 
 /** @brief mailbox for messages to BaSe BCU */
 mailbox_t bcu_comm_mb;
@@ -196,6 +198,9 @@ static pcu_returncode_e _cmdShutdown(BaseSequentialStream *chp, int argc, char *
     }
     const char *init_or_abort = argv[0];
     if (isEqual(init_or_abort, "init")) {
+        if (argc == 2) {
+            chprintf(chp, "ignoring custom timeout");
+        }
         statemachine_sendEvent(EVENT_SHUTDOWN_REQUESTED);
     }
     else if (isEqual(init_or_abort, "abort")) {
@@ -204,6 +209,11 @@ static pcu_returncode_e _cmdShutdown(BaseSequentialStream *chp, int argc, char *
     else {
         return pcuFAIL;
     }
+    return pcuSUCCESS;
+}
+
+static pcu_returncode_e _cmdWakeup(void) {
+    statemachine_sendEvent(EVENT_WAKEUP_REQUESTED_BY_USER);
     return pcuSUCCESS;
 }
 
@@ -225,6 +235,39 @@ static void cmd(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
     else if (isEqual(command, "shutdown")) {
         success = _cmdShutdown(chp, argc-1, argv+1);
+    }
+    else if (isEqual(command, "wakeup")) {
+        success = _cmdWakeup();
+    }
+    else {
+        chprintf(chp, "invalid command %s\n", command);
+    }
+
+    if (success == pcuSUCCESS) {
+        chprintf(chp, "%s successful\n", command);
+    }
+    else {
+        chprintf(chp, "%s failed\n", command);
+    }
+}
+
+static void debugcmd(BaseSequentialStream *chp, int argc, char *argv[]) {
+    if (argc < 1) {
+        _argument_missing(chp);
+        return;
+    }
+    char *command = argv[0];
+    pcu_returncode_e success = pcuFAIL;
+    if (isEqual(command, "wakeup")) {
+        success = _cmdWakeup();
+    }
+    else if (isEqual(command, "button_0_pressed")) {
+        statemachine_sendEvent(EVENT_BUTTON_0_PRESSED);
+        success = pcuSUCCESS;
+    }
+    else if (isEqual(command, "button_1_pressed")) {
+        statemachine_sendEvent(EVENT_BUTTON_1_PRESSED);
+        success = pcuSUCCESS;
     }
     else {
         chprintf(chp, "invalid command %s\n", command);
@@ -266,6 +309,20 @@ static void _getDate(BaseSequentialStream *chp, int argc, char *argv[]) {
 
 static pcu_returncode_e _getWakeupReason(BaseSequentialStream *chp) {
     wakeup_reason_e wakeup_reason = statemachine_getWakeupReason();
+    switch (wakeup_reason) {
+        case WAKEUP_REASON_POWER_ON:
+            chprintf(chp, "poweron\n");
+            break;
+        case WAKEUP_REASON_USER_REQUEST:
+            chprintf(chp, "requested\n");
+            break;
+        case WAKEUP_REASON_SCHEDULED:
+            chprintf(chp, "scheduled\n");
+            break;
+        default:
+            return pcuFAIL;
+    }
+    return pcuSUCCESS;
 }
 
 
@@ -340,11 +397,36 @@ static void _setDate(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
 }
 
-static void _setState(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void _setDisplay(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
     UNUSED_PARAM(argc);
-    UNUSED_PARAM(argv);
-    chprintf(chp, "not implemented\n");
+    if (isEqual(argv[0], "text")) {
+        /* FIXME: cannot display new line. Maybe put in second argument */
+        display_write(argv[1]);
+    }
+    else if (isEqual(argv[0], "brightness")) {
+        char *endPtr;
+        uint8_t brightness = (uint8_t) strtol(argv[1], &endPtr, 10);
+        display_dim(brightness);
+    }
+    else {
+        ;
+    }
 }
+
+static void _setLed(BaseSequentialStream *chp, int argc, char *argv[]) {
+    UNUSED_PARAM(chp);
+    UNUSED_PARAM(argc);
+    /* Todo: implement correctly */
+    if (isEqual(argv[0], "on")) {
+        hmi_led_dim(100);
+    }
+    if (isEqual(argv[0], "off")) {
+        hmi_led_dim(0);
+    }
+
+}
+
 
 static void cmd_set(BaseSequentialStream *chp, int argc, char *argv[]) {
     UNUSED_PARAM(argc);
@@ -356,8 +438,11 @@ static void cmd_set(BaseSequentialStream *chp, int argc, char *argv[]) {
     if(isEqual(argv[0], "date")) {
         _setDate(chp, argc-1, argv+1);
     }
-    else if (isEqual(argv[0], "state")) {
-        _setState(chp, argc-1, argv+1);
+    else if (isEqual(argv[0], "display")) {
+        _setDisplay(chp, argc-1, argv+1);
+    }
+    else if (isEqual(argv[0], "led")) {
+        _setLed(chp, argc-1, argv+1);
     }
     else {
         chprintf(chp, "invalid\n");
@@ -375,6 +460,7 @@ static const ShellCommand commands[] = {
         {"set", cmd_set},
         {"probe", cmd_testForEcho},
         {"cmd", cmd},
+        {"debugcmd", debugcmd},
         {NULL, NULL}
 };
 

@@ -1,7 +1,4 @@
-/software/pcu/build
-/software/pcu/.dep
-/software/pcu/.idea
-
+# kicad related
 .bak
 rescue-backup/
 /*backups
@@ -10,3 +7,10 @@ rescue-backup/
 *.step
 *.zip
 *.kicad_prl
+*/fabrication
+*/production
+
+# firmware
+/software/pcu/build
+/software/pcu/.dep
+/software/pcu/.idea

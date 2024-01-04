@@ -10,6 +10,7 @@ LOG = logging.getLogger(__name__)
 
 
 def setup_logger() -> None:
+    LOG.debug("Setting up logger...")
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
@@ -28,8 +29,11 @@ def setup_logger() -> None:
 
 
 async def engage() -> None:
+    LOG.debug("Docking...")
     await pcu.cmd.dock()
+    LOG.debug("Switching HDD power on...")
     await pcu.cmd.power.hdd.on()
+    LOG.debug("Mounting HDD...")
     subprocess.call(["mount", "/dev/BACKUPHDD"])
 
 
@@ -71,8 +75,10 @@ async def backup():
 
     output_task = asyncio.create_task(handle_output(process.stdout))
 
+    LOG.debug("Starting Backup...")
     await process.wait()
     await output_task
+    LOG.debug("Backup finished.")
 
     stderr = await process.stderr.read()
     if stderr:
@@ -80,18 +86,23 @@ async def backup():
 
 
 async def disengage() -> None:
+    LOG.debug("Unmounting HDD...")
     subprocess.call(["umount", "/dev/BACKUPHDD"])
+    LOG.debug("Switching HDD power off...")
     await pcu.cmd.power.hdd.off()
+    LOG.debug("Undocking...")
     await pcu.cmd.undock()
 
 
 async def set_wakeup_time() -> None:
+    LOG.debug("Programming PCU...")
     await pcu.set.date.now(datetime.now())
     await pcu.set.date.wakeup(datetime.now() + timedelta(days=7))
     await pcu.set.date.backup(datetime.now() + timedelta(days=7))
 
 
 def shutdown():
+    LOG.debug("Shutting down...")
     pcu.cmd.shutdown()
     subprocess.call(["shutdown", "-h", "now"])
 

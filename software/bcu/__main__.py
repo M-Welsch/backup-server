@@ -59,7 +59,7 @@ async def backup():
         "-aH",
         "--stats",
         "--delete",
-        "$(ssh - G nas | awk '/^hostname / { print $2 }')::backup_testdata_source/*",
+        "$(ssh -G nas | awk '/^hostname / { print $2 }')::backup_testdata_source/*",
         "/media/BackupHDD/backups/current"
     ]
     process = await asyncio.create_subprocess_exec(

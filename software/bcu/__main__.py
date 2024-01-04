@@ -58,14 +58,18 @@ async def handle_output(pipe):
 
 
 async def backup():
+    nas_ip = subprocess.check_output("ssh -G nas | awk '/^hostname / { print $2 }'", shell=True)
+    nas_ip = nas_ip.decode().strip()
+    LOG.info(f"obtained IP Address of NAS: {nas_ip}")
     backup_command = [
         "rsync",
         "-aH",
         "--stats",
         "--delete",
-        "$(ssh -G nas | awk '/^hostname / { print $2 }')::backup_testdata_source/*",
+        f"{nas_ip}::backup_testdata_source/*",
         "/media/BackupHDD/backups/current"
     ]
+    LOG.info(f"Backing up with command {' '.join(backup_command)}")
     process = await asyncio.create_subprocess_exec(
         *backup_command,
         shell=True,
@@ -101,9 +105,9 @@ async def set_wakeup_time() -> None:
     await pcu.set.date.backup(datetime.now() + timedelta(days=7))
 
 
-def shutdown():
+async def shutdown():
     LOG.debug("Shutting down...")
-    pcu.cmd.shutdown()
+    await pcu.cmd.shutdown.init()
     subprocess.call(["shutdown", "-h", "now"])
 
 
@@ -113,7 +117,7 @@ async def main() -> None:
     await backup()
     await disengage()
     await set_wakeup_time()
-    shutdown()
+    await shutdown()
 
 
 if __name__ == "__main__":

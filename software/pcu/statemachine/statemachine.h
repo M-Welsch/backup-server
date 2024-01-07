@@ -8,6 +8,7 @@
 #include "ch.h"
 
 typedef enum {
+  STATE_INIT,
   STATE_ACTIVE,
   STATE_SHUTDOWN_REQUESTED,
   STATE_DEEP_SLEEP,

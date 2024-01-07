@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import subprocess
 from datetime import datetime, timedelta
 
@@ -33,6 +34,7 @@ async def engage() -> None:
     await pcu.cmd.dock()
     LOG.debug("Switching HDD power on...")
     await pcu.cmd.power.hdd.on()
+    await asyncio.sleep(2)
     LOG.debug("Mounting HDD...")
     subprocess.call(["mount", "/dev/BACKUPHDD"])
 
@@ -72,7 +74,7 @@ async def backup():
     LOG.info(f"Backing up with command {' '.join(backup_command)}")
     process = await asyncio.create_subprocess_exec(
         *backup_command,
-        shell=True,
+        shell=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
@@ -81,8 +83,9 @@ async def backup():
 
     LOG.debug("Starting Backup...")
     await process.wait()
-    await output_task
     LOG.debug("Backup finished.")
+    await output_task
+    LOG.debug("Backup output task finished.")
 
     stderr = await process.stderr.read()
     if stderr:
@@ -101,14 +104,15 @@ async def disengage() -> None:
 async def set_wakeup_time() -> None:
     LOG.debug("Programming PCU...")
     await pcu.set.date.now(datetime.now())
-    await pcu.set.date.wakeup(datetime.now() + timedelta(days=7))
-    await pcu.set.date.backup(datetime.now() + timedelta(days=7))
+    await pcu.set.date.wakeup(datetime.now() + timedelta(minutes=1))
+    await pcu.set.date.backup(datetime.now() + timedelta(minutes=1))
 
 
 async def shutdown():
     LOG.debug("Shutting down...")
     await pcu.cmd.shutdown.init()
-    subprocess.call(["shutdown", "-h", "now"])
+    os.system("shutdown -h now")
+    # subprocess.call(["shutdown", "-h", "now"])
 
 
 async def main() -> None:
@@ -116,6 +120,7 @@ async def main() -> None:
     await engage()
     await backup()
     await disengage()
+    await asyncio.sleep(60)  # hold on for a minute to give the user time to intervene
     await set_wakeup_time()
     await shutdown()
 

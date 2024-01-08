@@ -1,0 +1,3 @@
+# Enable user to perform shutdown
+
+base ALL=(ALL) NOPASSWD: /sbin/shutdown

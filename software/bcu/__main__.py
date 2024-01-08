@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 import subprocess
 from datetime import datetime, timedelta
 
@@ -31,7 +30,12 @@ def setup_logger() -> None:
 
 async def engage() -> None:
     LOG.debug("Docking...")
-    await pcu.cmd.dock()
+    docking_trials = 0
+    while not await pcu.cmd.dock():
+        LOG.warning("couldn't dock, try another time.")
+        docking_trials += 1
+        if docking_trials == 2:
+            raise RuntimeError("couldn't dock with two trials")
     LOG.debug("Switching HDD power on...")
     await pcu.cmd.power.hdd.on()
     await asyncio.sleep(2)
@@ -89,7 +93,8 @@ async def backup():
 
     stderr = await process.stderr.read()
     if stderr:
-        LOG.info(f"Fehlerausgabe: {stderr.decode()}")
+        LOG.error(f"Fehlerausgabe: {stderr.decode()}")
+        exit(-1)  # to trace bug #19
 
 
 async def disengage() -> None:
@@ -104,15 +109,17 @@ async def disengage() -> None:
 async def set_wakeup_time() -> None:
     LOG.debug("Programming PCU...")
     await pcu.set.date.now(datetime.now())
+    LOG.debug(f"read current time from pcu: {await pcu.get.date.now()}")
     await pcu.set.date.wakeup(datetime.now() + timedelta(minutes=1))
+    LOG.debug(f"read wakeup time from pcu: {await pcu.get.date.wakeup()}")
     await pcu.set.date.backup(datetime.now() + timedelta(minutes=1))
+    LOG.debug(f"read backup time from pcu: {await pcu.get.date.backup()}")
 
 
 async def shutdown():
     LOG.debug("Shutting down...")
     await pcu.cmd.shutdown.init()
-    os.system("shutdown -h now")
-    # subprocess.call(["shutdown", "-h", "now"])
+    subprocess.call(["sudo", "/sbin/shutdown", "-h", "now"])
 
 
 async def main() -> None:

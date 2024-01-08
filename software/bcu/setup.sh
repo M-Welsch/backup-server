@@ -30,3 +30,7 @@ cat setup/fstab | sudo tee -a /etc/fstab > /dev/null
 cat setup/config | tee -a ~/.ssh/config > /dev/null
 ssh-copy-id -i ~/.ssh/id_rsa.pub nas
 for i in 1 2 3 4 5 6 7 8 9 10; do dd if=/dev/urandom of=dummy_file_$i.txt count=1024 bs=1024; done
+
+### sudoers (enable base to perform shutdown)
+
+cat setup/sudoers | sudo tee -a /etc/sudoers > /dev/null

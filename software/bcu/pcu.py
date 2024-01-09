@@ -186,6 +186,7 @@ class set:
             raise NotImplementedError
 
 
+
 async def call_pcu(command: str) -> str:
     LOG.debug(f"calling pcu with {command}")
     command_bytes = (command + "\r\n").encode()
@@ -198,6 +199,21 @@ async def call_pcu(command: str) -> str:
     output = [o.strip() for o in output]
     filtered = _filter_output_payload(output, command)
     return ", ".join(filtered)
+
+
+async def _probe() -> str:
+    return await call_pcu("probe")
+
+
+async def handshake() -> None:
+    maximum_trials = 3
+    trials = 0
+    LOG.debug("performing handshake with pcu")
+    while not (response := await _probe()) == 'Echo':
+        LOG.warning(f"handshake not successful, received {response}, try another time (this is normal for the first time! Change this message after initial test!)")
+        trials += 1
+        if trials >= maximum_trials:
+            raise RuntimeError("Cannot handshake with PCU")
 
 
 async def _get_analog(measurement: AnalogMeasurement) -> int:

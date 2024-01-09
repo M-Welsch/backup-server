@@ -2,6 +2,7 @@ import asyncio
 import logging
 import subprocess
 from datetime import datetime, timedelta
+import argparse
 
 import pcu
 
@@ -28,31 +29,24 @@ def setup_logger() -> None:
     logger.addHandler(file_handler)
 
 
+async def init():
+    setup_logger()
+    await pcu.handshake()
+
+
 async def engage() -> None:
-    LOG.debug("Docking...")
+    LOG.info("Docking...")
     docking_trials = 0
     while not await pcu.cmd.dock():
         LOG.warning("couldn't dock, try another time.")
         docking_trials += 1
-        if docking_trials == 2:
+        if docking_trials == 4:
             raise RuntimeError("couldn't dock with two trials")
-    LOG.debug("Switching HDD power on...")
+    LOG.info("Switching HDD power on...")
     await pcu.cmd.power.hdd.on()
     await asyncio.sleep(2)
-    LOG.debug("Mounting HDD...")
+    LOG.info("Mounting HDD...")
     subprocess.call(["mount", "/dev/BACKUPHDD"])
-
-
-#def backup() -> None:
-#    backup_command = [
-#        "rsync",
-#        "-aH",
-#        "--stats",
-#        "--delete",
-#        "$(ssh - G nas | awk '/^hostname / { print $2 }')::backup_testdata_source/*",
-#        "/media/BackupHDD/backups/current"
-#    ]
-#    subprocess.call(backup_command, shell=True)
 
 
 async def handle_output(pipe):
@@ -85,9 +79,9 @@ async def backup():
 
     output_task = asyncio.create_task(handle_output(process.stdout))
 
-    LOG.debug("Starting Backup...")
+    LOG.info("Starting Backup...")
     await process.wait()
-    LOG.debug("Backup finished.")
+    LOG.info("Backup finished.")
     await output_task
     LOG.debug("Backup output task finished.")
 
@@ -98,16 +92,16 @@ async def backup():
 
 
 async def disengage() -> None:
-    LOG.debug("Unmounting HDD...")
+    LOG.info("Unmounting HDD...")
     subprocess.call(["umount", "/dev/BACKUPHDD"])
-    LOG.debug("Switching HDD power off...")
+    LOG.info("Switching HDD power off...")
     await pcu.cmd.power.hdd.off()
-    LOG.debug("Undocking...")
+    LOG.info("Undocking...")
     await pcu.cmd.undock()
 
 
 async def set_wakeup_time() -> None:
-    LOG.debug("Programming PCU...")
+    LOG.info("Programming PCU. Setting current time and time for next wakeup")
     await pcu.set.date.now(datetime.now())
     LOG.debug(f"read current time from pcu: {await pcu.get.date.now()}")
     await pcu.set.date.wakeup(datetime.now() + timedelta(minutes=1))
@@ -117,19 +111,24 @@ async def set_wakeup_time() -> None:
 
 
 async def shutdown():
-    LOG.debug("Shutting down...")
+    LOG.info("Shutting down...")
     await pcu.cmd.shutdown.init()
     subprocess.call(["sudo", "/sbin/shutdown", "-h", "now"])
 
 
 async def main() -> None:
-    setup_logger()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--no-shutdown", default=False, required=False)
+    parser.add_argument("--wait-before-shutdown", type=int, default=60, required=False)
+    args = parser.parse_args()
+    await init()
     await engage()
     await backup()
     await disengage()
-    await asyncio.sleep(60)  # hold on for a minute to give the user time to intervene
+    await asyncio.sleep(args.wait_before_shutdown)
     await set_wakeup_time()
-    await shutdown()
+    if not args.no_shutdown:
+        await shutdown()
 
 
 if __name__ == "__main__":

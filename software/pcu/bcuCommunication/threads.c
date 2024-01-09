@@ -96,6 +96,11 @@ static void _getCurrentLog(BaseSequentialStream *chp) {
     chprintf(chp, "\n");
 }
 
+static void _getCurrentState(BaseSequentialStream *chp) {
+    uint8_t  state = (uint8_t) statemachine_getCurrentState();
+    chprintf(chp, "%d\n", state);
+}
+
 static inline bool isEqual(const char *buffer, const char *string) {
     return strcmp((char *) buffer, string) == 0;
 }
@@ -198,9 +203,19 @@ static pcu_returncode_e _cmdShutdown(BaseSequentialStream *chp, int argc, char *
     }
     const char *init_or_abort = argv[0];
     if (isEqual(init_or_abort, "init")) {
+        uint32_t milliseconds_to_shutdown = DEFAULT_MILLISECONDS_TO_SHUTDOWN;
         if (argc == 2) {
-            chprintf(chp, "ignoring custom timeout");
+            char *endPtr;
+            milliseconds_to_shutdown = (uint32_t) strtol(argv[1], &endPtr, 10);
+            if (milliseconds_to_shutdown > MAXIMUM_MILLISECONDS_TO_SHUTDOWN) {
+                milliseconds_to_shutdown = DEFAULT_MILLISECONDS_TO_SHUTDOWN;
+                chprintf(chp, "custom timeout for shutdown exceeded limit of %d, defaulting to %d.", MAXIMUM_MILLISECONDS_TO_SHUTDOWN, DEFAULT_MILLISECONDS_TO_SHUTDOWN);
+            }
+            else {
+                chprintf(chp, "setting custom timeout of %d ms\n", milliseconds_to_shutdown);
+            }
         }
+        statemachine_setMillisecondsToShutdown(milliseconds_to_shutdown);  // set this in any case to enforce the default if nothing else is said
         statemachine_sendEvent(EVENT_SHUTDOWN_REQUESTED);
     }
     else if (isEqual(init_or_abort, "abort")) {
@@ -358,6 +373,9 @@ static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     else if (isEqual(whatToGet, "currentlog")) {
         _getCurrentLog(chp);
     }
+    else if (isEqual(whatToGet, "currentstate")) {
+        _getCurrentState(chp);
+    }
     else {
         chprintf(chp, "invalid\n");
     }
@@ -452,7 +470,7 @@ static void cmd_set(BaseSequentialStream *chp, int argc, char *argv[]) {
 static void cmd_testForEcho(BaseSequentialStream *chp, int argc, char *argv[]) {
     UNUSED_PARAM(argc);
     UNUSED_PARAM(argv);
-    chprintf(chp, "Echo");
+    chprintf(chp, "Echo\n");
 }
 
 static const ShellCommand commands[] = {

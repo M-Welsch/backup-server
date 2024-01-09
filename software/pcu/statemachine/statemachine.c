@@ -4,6 +4,8 @@
 #include "bcuCommunication.h"
 
 static wakeup_reason_e wakeup_reason = WAKEUP_REASON_POWER_ON;
+static uint32_t milliseconds_to_shutdown = DEFAULT_MILLISECONDS_TO_SHUTDOWN;
+static state_codes_e current_state = STATE_INIT;
 
 wakeup_reason_e statemachine_getWakeupReason(void) {
     return wakeup_reason;
@@ -43,7 +45,7 @@ int STATE_ACTIVE_state(void) {
 int STATE_SHUTDOWN_REQUESTED_state(void) {
     state_codes_e next_state = STATE_DEEP_SLEEP;
     sendToBcu("shutdown_requested state");
-    eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(5000));
+    eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(milliseconds_to_shutdown));
     if (evt & (EVENT_SHUTDOWN_ABORTED | EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK )) {
         next_state = STATE_ACTIVE;
     }
@@ -118,7 +120,6 @@ struct transition state_transitions[] = {
 };
 
 #define EXIT_STATE STATE_DEEP_SLEEP
-#define ENTRY_STATE STATE_INIT
 
 #define DIMENSION(x) (uint8_t)(sizeof(x)/sizeof(x[0]))
 
@@ -173,7 +174,6 @@ state_codes_e statemachine_transitionToState(state_codes_e current_state, state_
  */
 void statemachine_mainloop(void) {
     int (* state_fun)(void);
-    state_codes_e current_state = ENTRY_STATE;
     state_codes_e desired_state = STATE_ACTIVE;
 
     power5v();  // necessary to turn it on initially
@@ -211,4 +211,12 @@ void statemachine_sendEventFromIsr(eventmask_t events) {
     chSysLockFromISR();
     chEvtSignalI(uart_thread, events);
     chSysUnlockFromISR();
+}
+
+void statemachine_setMillisecondsToShutdown(uint32_t milliseconds) {
+    milliseconds_to_shutdown = milliseconds;
+}
+
+state_codes_e statemachine_getCurrentState(void) {
+    return current_state;
 }

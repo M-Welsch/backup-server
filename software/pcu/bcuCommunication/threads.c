@@ -3,6 +3,9 @@
 #include "ch.h"
 #include "hal.h"
 #include "usbcfg.h"
+
+#define SHELL_MAX_ARGUMENTS 10  // Fixme(low prio): has to be changed in shell.h directly. No idea why this doesn't work
+
 #include "shell.h"
 #include "chprintf.h"
 #include "threads.h"

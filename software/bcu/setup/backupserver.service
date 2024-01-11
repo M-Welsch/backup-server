@@ -1,0 +1,11 @@
+[Unit]
+Description=Backup Server's Backup Control Unit (BCU)
+
+[Service]
+Type=simple
+User=base
+WorkingDirectory=/home/base/backup-server/software/bcu
+ExecStart=python3 /home/base/backup-server/software/bcu
+
+[Install]
+WantedBy=multi-user.target"

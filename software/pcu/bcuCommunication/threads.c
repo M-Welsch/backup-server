@@ -20,6 +20,7 @@
 #include "display.h"
 #include "hmi.h"
 #include "debug.h"
+#include "pcu_version.h"
 
 /** @brief mailbox for messages to BaSe BCU */
 mailbox_t bcu_comm_mb;
@@ -344,6 +345,14 @@ static pcu_returncode_e _getWakeupReason(BaseSequentialStream *chp) {
     return pcuSUCCESS;
 }
 
+static pcu_returncode_e _getVersion(BaseSequentialStream *chp) {
+    chprintf(chp, "branch: %s\n", pcu_build_git_branch_name);
+    chprintf(chp, "status: %s\n", pcu_build_git_branch_status);
+    chprintf(chp, "commit: %s\n", pcu_build_git_last_commit);
+    chprintf(chp, "commit_time: %s\n", pcu_build_git_commit_time);
+    chprintf(chp, "build_date: %s\n", pcu_build_date);
+}
+
 
 static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc < 1) {
@@ -382,6 +391,9 @@ static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
     else if (isEqual(whatToGet, "logs")) {
         chprintf(chp, "not implemented\n");
+    }
+    else if (isEqual(whatToGet, "version")) {
+        _getVersion(chp);
     }
     else {
         chprintf(chp, "invalid\n");

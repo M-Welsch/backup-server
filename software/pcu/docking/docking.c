@@ -1,8 +1,7 @@
 #include "docking.h"
 #include "hal.h"
 #include "measurement.h"
-#include "bcuCommunication.h"
-#include "chprintf.h"
+#include "debug.h"
 
 static pcu_dockingstate_e dockingState = pcu_dockingState_unknown;
 static uint16_t currentLog[CURRENT_LOG_BUFFER_SIZE + 1];
@@ -134,6 +133,7 @@ bool getFromCurrentLog(uint16_t *outval, const uint16_t ptr) {
 
 
 pcu_returncode_e dock(void) {
+    debug_log("[I] docking start\n");
     getDockingState();  // this updates the global static dockingState
     if (dockingState != pcu_dockingState1_undocked && dockingState != pcu_dockingState9_inbetween && dockingState != pcu_dockingState_unknown) {
         return pcuSUCCESS;
@@ -160,6 +160,7 @@ pcu_returncode_e dock(void) {
             overcurrent_count++;
             if (overcurrent_count > MAXIMUM_CONSECUTIVE_OVERCURRENT_SAMPLES) {
                 retval = pcuOVERCURRENT;
+                debug_log("[E] docking overcurrent for %d samples\n", MAXIMUM_CONSECUTIVE_OVERCURRENT_SAMPLES);
                 break;
             }
         }
@@ -171,12 +172,17 @@ pcu_returncode_e dock(void) {
     }
     _motorBreak();
     if (!countdown) {
+        debug_log("[E] docking timeout (%d ms)\n", MAXIMUM_DOCKING_TIME_1MS_TICKS);
         return pcuTIMEOUT;
+    }
+    if (retval == pcuSUCCESS) {
+        debug_log("[I] docking successful\n");
     }
     return retval;
 }
 
 pcu_returncode_e undock(void) {
+    debug_log("[I] undocking start\n");
     if (getDockingState() == pcu_dockingState1_undocked) {
         return pcuSUCCESS;
     }
@@ -200,6 +206,7 @@ pcu_returncode_e undock(void) {
             overcurrent_count++;
             if (overcurrent_count > MAXIMUM_CONSECUTIVE_OVERCURRENT_SAMPLES) {
                 retval = pcuOVERCURRENT;
+                debug_log("[E] undocking overcurrent for %d samples\n", MAXIMUM_CONSECUTIVE_OVERCURRENT_SAMPLES);
                 break;
             }
         }
@@ -211,7 +218,11 @@ pcu_returncode_e undock(void) {
     }
     _motorBreak();
     if (!countdown) {
+        debug_log("[E] undocking timeout (%d ms)\n", MAXIMUM_DOCKING_TIME_1MS_TICKS);
         return pcuTIMEOUT;
+    }
+    if (retval == pcuSUCCESS) {
+        debug_log("[I] undocking successful\n");
     }
     return retval;
 }

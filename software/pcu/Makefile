@@ -136,6 +136,7 @@ CSRC = $(ALLCSRC) \
        statemachine/statemachine.c \
        hmi/display.c \
        hmi/hmi.c \
+       tools/debug.c \
        main.c \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -155,6 +156,7 @@ BASE_INCDIR = ./core_defines \
 			  ./docking \
 			  ./power \
 			  ./statemachine \
+			  ./tools \
 			  ./hmi
 
 # Inclusion directories.

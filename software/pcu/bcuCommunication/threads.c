@@ -19,6 +19,7 @@
 #include "pcu_events.h"
 #include "display.h"
 #include "hmi.h"
+#include "debug.h"
 
 /** @brief mailbox for messages to BaSe BCU */
 mailbox_t bcu_comm_mb;
@@ -378,6 +379,9 @@ static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
     else if (isEqual(whatToGet, "currentstate")) {
         _getCurrentState(chp);
+    }
+    else if (isEqual(whatToGet, "logs")) {
+        chprintf(chp, "not implemented\n");
     }
     else {
         chprintf(chp, "invalid\n");

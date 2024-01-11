@@ -2,6 +2,7 @@
 #include "power.h"
 #include "pcu_events.h"
 #include "bcuCommunication.h"
+#include "debug.h"
 
 static wakeup_reason_e wakeup_reason = WAKEUP_REASON_POWER_ON;
 static uint32_t milliseconds_to_shutdown = DEFAULT_MILLISECONDS_TO_SHUTDOWN;
@@ -28,6 +29,7 @@ int STATE_INIT_state(void) {
  * @return STATE_SHUTDOWN_REQUESTED if BCU requests shutdown, otherwise STATE_ACTIVE
  */
 int STATE_ACTIVE_state(void) {
+    debug_log("[I] performing ACTIVE STATE action\n");
     state_codes_e next_state = STATE_ACTIVE;
     sendToBcu("active state");
     eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
@@ -43,6 +45,7 @@ int STATE_ACTIVE_state(void) {
  * @return STATE_DEEP_SLEEP if shutdown timer expires, STATE_ACTIVE if BCU aborts shutdown
  */
 int STATE_SHUTDOWN_REQUESTED_state(void) {
+    debug_log("[I] performing SHUTDOWN REQUESTED STATE action\n");
     state_codes_e next_state = STATE_DEEP_SLEEP;
     sendToBcu("shutdown_requested state");
     eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(milliseconds_to_shutdown));
@@ -56,6 +59,7 @@ int STATE_SHUTDOWN_REQUESTED_state(void) {
  * @return
  */
 int STATE_DEEP_SLEEP_state(void) {
+    debug_log("[I] performing DEEP SLEEP STATE action\n");
     state_codes_e next_state = STATE_DEEP_SLEEP;
     sendToBcu("deep_sleep state");
     eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
@@ -74,6 +78,7 @@ int STATE_DEEP_SLEEP_state(void) {
 }
 
 int STATE_HMI_state(void) {
+    debug_log("[I] performing HMI STATE action\n");
     state_codes_e next_state = STATE_DEEP_SLEEP;
     sendToBcu("hmi state");
     eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(60000));
@@ -140,8 +145,10 @@ bool transition_valid(state_codes_e cur_state, state_codes_e desired_state) {
  */
 state_codes_e statemachine_transitionToState(state_codes_e current_state, state_codes_e desired_state) {
     if (!transition_valid(current_state, desired_state)) {
+        debug_log("[W] statemachine transitioning from %d to %d is INVALID\n", current_state, desired_state);
         return current_state;
     }
+    debug_log("[I] statemachine transitioning from %d to %d\n", current_state, desired_state);
 
     /* perform actions on leaving a state */
     switch (current_state) {

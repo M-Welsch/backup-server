@@ -120,9 +120,14 @@ async def shutdown():
 
 async def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--test-args", default="", type=str, required=False)
     parser.add_argument("--no-shutdown", default=False, required=False)
     parser.add_argument("--wait-before-shutdown", type=int, default=60, required=False)
     args = parser.parse_args()
+    if args.test_args:
+        with open("somefile", "w") as file:
+            file.write(f"test args with: {args.test_args}")
+        exit()
     await init()
     await engage()
     await backup()

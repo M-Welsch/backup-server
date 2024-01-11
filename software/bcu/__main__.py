@@ -35,17 +35,18 @@ async def init():
 
 
 async def engage() -> None:
-    LOG.info("Docking...")
+    LOG.info("Connect Backup HDD")
+    LOG.debug("Docking...")
     docking_trials = 0
     while not await pcu.cmd.dock():
         LOG.warning("couldn't dock, try another time.")
         docking_trials += 1
         if docking_trials == 4:
             raise RuntimeError("couldn't dock with two trials")
-    LOG.info("Switching HDD power on...")
+    LOG.debug("Switching HDD power on...")
     await pcu.cmd.power.hdd.on()
     await asyncio.sleep(2)
-    LOG.info("Mounting HDD...")
+    LOG.debug("Mounting HDD...")
     subprocess.call(["mount", "/dev/BACKUPHDD"])
 
 
@@ -54,13 +55,13 @@ async def handle_output(pipe):
         line = await pipe.readline()
         if not line:
             break
-        LOG.info(f"Live Output: {line.decode().rstrip()}")
+        LOG.debug(f"Live Output: {line.decode().rstrip()}")
 
 
 async def backup():
     nas_ip = subprocess.check_output("ssh -G nas | awk '/^hostname / { print $2 }'", shell=True)
     nas_ip = nas_ip.decode().strip()
-    LOG.info(f"obtained IP Address of NAS: {nas_ip}")
+    LOG.debug(f"obtained IP Address of NAS: {nas_ip}")
     backup_command = [
         "rsync",
         "-aH",
@@ -69,7 +70,7 @@ async def backup():
         f"{nas_ip}::backup_testdata_source/*",
         "/media/BackupHDD/backups/current"
     ]
-    LOG.info(f"Backing up with command {' '.join(backup_command)}")
+    LOG.debug(f"Backing up with command {' '.join(backup_command)}")
     process = await asyncio.create_subprocess_exec(
         *backup_command,
         shell=False,
@@ -92,11 +93,12 @@ async def backup():
 
 
 async def disengage() -> None:
-    LOG.info("Unmounting HDD...")
+    LOG.info("Disconnecting Backup HDD")
+    LOG.debug("Unmounting HDD...")
     subprocess.call(["umount", "/dev/BACKUPHDD"])
-    LOG.info("Switching HDD power off...")
+    LOG.debug("Switching HDD power off...")
     await pcu.cmd.power.hdd.off()
-    LOG.info("Undocking...")
+    LOG.debug("Undocking...")
     await pcu.cmd.undock()
 
 

@@ -1,3 +1,6 @@
 # Enable user to perform shutdown
 
 base ALL=(ALL) NOPASSWD: /sbin/shutdown
+base ALL=(ALL) NOPASSWD: /bin/systemctl stop backupserver
+
+# maybe you have to enter the last line into `sudo visudo -f /etc/sudoers.d/base`

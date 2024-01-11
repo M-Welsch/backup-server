@@ -206,7 +206,7 @@ async def _probe() -> str:
 
 
 async def handshake() -> None:
-    maximum_trials = 3
+    maximum_trials = 4
     trials = 0
     LOG.debug("performing handshake with pcu")
     while not (response := await _probe()) == 'Echo':
@@ -320,15 +320,8 @@ async def _set_date(date_kind: DateKind, date: datetime) -> str:
 
 async def _get_date(date_kind: DateKind) -> datetime:
     command = "get date " + date_kind.value
-    maximum_trials = 4
-    trials = 0
-    while trials <= maximum_trials:
-        trials += 1
-        datestr = await call_pcu(command)
-        try:
-            return _pcu_timestring_to_datetime(datestr)
-        except ValueError:
-            LOG.warning(f"couldn't convert {datestr} to timestring while getting {date_kind.value}")
+    datestr = await call_pcu(command)
+    return _pcu_timestring_to_datetime(datestr)
 
 
 class VoltageRail(Enum):

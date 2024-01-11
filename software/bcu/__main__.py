@@ -41,11 +41,11 @@ async def engage() -> None:
     while not await pcu.cmd.dock():
         LOG.warning("couldn't dock, try another time.")
         docking_trials += 1
-        if docking_trials == 4:
+        if docking_trials == 4:  # this is a workaround for issue #25
             raise RuntimeError("couldn't dock with two trials")
     LOG.debug("Switching HDD power on...")
     await pcu.cmd.power.hdd.on()
-    await asyncio.sleep(2)
+    await asyncio.sleep(2)  # workaround for #26
     LOG.debug("Mounting HDD...")
     subprocess.call(["mount", "/dev/BACKUPHDD"])
 

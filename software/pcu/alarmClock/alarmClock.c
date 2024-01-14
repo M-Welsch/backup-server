@@ -5,6 +5,7 @@
 #include "bcuCommunication.h"
 #include "statemachine.h"
 #include "pcu_events.h"
+#include "debug.h"
 
 static RTCDateTime date_wakeup;
 static RTCDateTime date_backup;
@@ -31,6 +32,9 @@ pcu_returncode_e alarmClock_setDateNow(const RTCDateTime* timespec) {
         return pcuFAIL;
     }
     rtcSetTime(&RTCD1, timespec);
+    char buffer[64];
+    alarmClock_RtcDateTimeToStr(buffer, timespec);
+    debug_log("[I] alarmclock setting now date to %s\n", buffer);
     return pcuSUCCESS;
 }
 
@@ -67,6 +71,9 @@ pcu_returncode_e alarmClock_setDateWakeup(RTCDateTime* timespec) {
     };
 
     rtcSetAlarm(&RTCD1, 0, &alarm1);
+    char buffer[64];
+    alarmClock_RtcDateTimeToStr(buffer, timespec);
+    debug_log("[I] alarmclock setting wakeup date to %s\n", buffer);
     return pcuSUCCESS;
 }
 
@@ -91,6 +98,9 @@ pcu_returncode_e alarmClock_getDateWakeup(RTCDateTime* timespec) {
 
 pcu_returncode_e alarmClock_setDateBackup(const RTCDateTime* timespec) {
     date_backup = *timespec;
+    char buffer[64];
+    alarmClock_RtcDateTimeToStr(buffer, timespec);
+    debug_log("[I] alarmclock setting backup date to %s\n", buffer);
     return pcuSUCCESS;
 }
 

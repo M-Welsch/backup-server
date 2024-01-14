@@ -3,6 +3,9 @@
 #include "ch.h"
 #include "hal.h"
 #include "usbcfg.h"
+
+#define SHELL_MAX_ARGUMENTS 10  // Fixme(low prio): has to be changed in shell.h directly. No idea why this doesn't work
+
 #include "shell.h"
 #include "chprintf.h"
 #include "threads.h"
@@ -16,6 +19,8 @@
 #include "pcu_events.h"
 #include "display.h"
 #include "hmi.h"
+#include "debug.h"
+#include "pcu_version.h"
 
 /** @brief mailbox for messages to BaSe BCU */
 mailbox_t bcu_comm_mb;
@@ -94,6 +99,11 @@ static void _getCurrentLog(BaseSequentialStream *chp) {
         counter++;
     }
     chprintf(chp, "\n");
+}
+
+static void _getCurrentState(BaseSequentialStream *chp) {
+    uint8_t  state = (uint8_t) statemachine_getCurrentState();
+    chprintf(chp, "%d\n", state);
 }
 
 static inline bool isEqual(const char *buffer, const char *string) {
@@ -198,9 +208,19 @@ static pcu_returncode_e _cmdShutdown(BaseSequentialStream *chp, int argc, char *
     }
     const char *init_or_abort = argv[0];
     if (isEqual(init_or_abort, "init")) {
+        uint32_t milliseconds_to_shutdown = DEFAULT_MILLISECONDS_TO_SHUTDOWN;
         if (argc == 2) {
-            chprintf(chp, "ignoring custom timeout");
+            char *endPtr;
+            milliseconds_to_shutdown = (uint32_t) strtol(argv[1], &endPtr, 10);
+            if (milliseconds_to_shutdown > MAXIMUM_MILLISECONDS_TO_SHUTDOWN) {
+                milliseconds_to_shutdown = DEFAULT_MILLISECONDS_TO_SHUTDOWN;
+                chprintf(chp, "custom timeout for shutdown exceeded limit of %d, defaulting to %d.", MAXIMUM_MILLISECONDS_TO_SHUTDOWN, DEFAULT_MILLISECONDS_TO_SHUTDOWN);
+            }
+            else {
+                chprintf(chp, "setting custom timeout of %d ms\n", milliseconds_to_shutdown);
+            }
         }
+        statemachine_setMillisecondsToShutdown(milliseconds_to_shutdown);  // set this in any case to enforce the default if nothing else is said
         statemachine_sendEvent(EVENT_SHUTDOWN_REQUESTED);
     }
     else if (isEqual(init_or_abort, "abort")) {
@@ -325,6 +345,14 @@ static pcu_returncode_e _getWakeupReason(BaseSequentialStream *chp) {
     return pcuSUCCESS;
 }
 
+static pcu_returncode_e _getVersion(BaseSequentialStream *chp) {
+    chprintf(chp, "branch: %s\n", pcu_build_git_branch_name);
+    chprintf(chp, "status: %s\n", pcu_build_git_branch_status);
+    chprintf(chp, "commit: %s\n", pcu_build_git_last_commit);
+    chprintf(chp, "commit_time: %s\n", pcu_build_git_commit_time);
+    chprintf(chp, "build_date: %s\n", pcu_build_date);
+}
+
 
 static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc < 1) {
@@ -357,6 +385,15 @@ static void cmd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
     else if (isEqual(whatToGet, "currentlog")) {
         _getCurrentLog(chp);
+    }
+    else if (isEqual(whatToGet, "currentstate")) {
+        _getCurrentState(chp);
+    }
+    else if (isEqual(whatToGet, "logs")) {
+        chprintf(chp, "not implemented\n");
+    }
+    else if (isEqual(whatToGet, "version")) {
+        _getVersion(chp);
     }
     else {
         chprintf(chp, "invalid\n");
@@ -452,7 +489,7 @@ static void cmd_set(BaseSequentialStream *chp, int argc, char *argv[]) {
 static void cmd_testForEcho(BaseSequentialStream *chp, int argc, char *argv[]) {
     UNUSED_PARAM(argc);
     UNUSED_PARAM(argv);
-    chprintf(chp, "Echo");
+    chprintf(chp, "Echo\n");
 }
 
 static const ShellCommand commands[] = {

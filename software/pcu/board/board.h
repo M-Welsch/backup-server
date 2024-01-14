@@ -104,6 +104,8 @@
 #define HMI_SCK2_SCL2_DISPLAY_DB5                 13U
 #define HMI_MISO2_SDA2_DISPLAY_DB6                 14U
 #define HMI_MOSI2_DISPLAY_DB7                 15U
+#define DEBUG_USART1_TX             6U
+#define DEBUG_USART1_RX             7U
 
 #define SW_HDD_ON                   0U
 #define SW_HDD_OFF                  1U
@@ -204,6 +206,8 @@
 #define LINE_ARD_D4                 PAL_LINE(GPIOB, 5U)
 #define LINE_ARD_D10                PAL_LINE(GPIOB, 6U)
 #define LINE_nDOCKED2               PAL_LINE(GPIOB, 8U)
+#define LINE_DEBUG_USART1_TX        PAL_LINE(GPIOB, 6U)
+#define LINE_DEBUG_USART1_RX        PAL_LINE(GPIOB, 7U)
 #define LINE_nDOCKED                PAL_LINE(GPIOB, 9U)
 #define LINE_ARD_D6                 PAL_LINE(GPIOB, 10U)
 #define LINE_SW_HDD_ON              PAL_LINE(GPIOC, SW_HDD_ON)
@@ -417,8 +421,8 @@
                                      PIN_MODE_ALTERNATE(GPIOB_SWO) |        \
                                      PIN_MODE_INPUT(GPIOB_ARD_D5) |         \
                                      PIN_MODE_INPUT(GPIOB_ARD_D4) |         \
-                                     PIN_MODE_INPUT(GPIOB_ARD_D10) |        \
-                                     PIN_MODE_INPUT(GPIOB_PIN7) |           \
+                                     PIN_MODE_ALTERNATE(DEBUG_USART1_TX) |        \
+                                     PIN_MODE_ALTERNATE(DEBUG_USART1_RX) |           \
                                      PIN_MODE_INPUT(nDOCKED_SENSE2) |        \
                                      PIN_MODE_INPUT(nDOCKED_SENSE) |        \
                                      PIN_MODE_OUTPUT(HMI_USART_TX3_DISPLAY_RS) |         \
@@ -497,8 +501,8 @@
                                      PIN_AFIO_AF(GPIOB_SWO, 0U) |           \
                                      PIN_AFIO_AF(GPIOB_ARD_D5, 0U) |        \
                                      PIN_AFIO_AF(GPIOB_ARD_D4, 0U) |        \
-                                     PIN_AFIO_AF(GPIOB_ARD_D10, 0U) |       \
-                                     PIN_AFIO_AF(GPIOB_PIN7, 0U))
+                                     PIN_AFIO_AF(DEBUG_USART1_TX, 0U) |       \
+                                     PIN_AFIO_AF(DEBUG_USART1_RX, 0U))
 #define VAL_GPIOB_AFRH              (PIN_AFIO_AF(nDOCKED_SENSE2, 0U) |       \
                                      PIN_AFIO_AF(nDOCKED_SENSE, 0U) |       \
                                      PIN_AFIO_AF(HMI_USART_TX3_DISPLAY_RS, 0U) |        \

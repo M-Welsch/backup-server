@@ -12,7 +12,6 @@ LOG = logging.getLogger(__name__)
 PCU_SERIAL_DEVICE = '/dev/ttySTLINK'
 PCU_SERIAL_BAUDRATE = 38400
 
-TESTMODE_FILE = Path.cwd().parent / "software" / "bcu" / "testmode"
 TESTMODE_FILE_CONTENT = """comment: "testmode file"
 
 backup:
@@ -71,6 +70,27 @@ class PcuSerialLogger:
         with open(self._logfile, 'r') as logfile:
             return logfile.readlines()
 
+def copy_password_file():
+    command = "scp .base_password basetest:/home/base/backup-server/hil"
+    subprocess.run(command.split())
+
+def remove_password_file():
+    command = "ssh basetest rm /home/base/backup-server/hil/.base_password"
+    subprocess.run(command.split())
+
+def stop_bcu_service_normalmode(base_name_in_ssh_config: str = BASE_HOSTNAME_IN_SSH_CONFIG, pw_file: str = '.base_password'):
+    copy_password_file()
+    command = f"ssh {base_name_in_ssh_config} '/home/base/backup-server/hil/stop_bcu_with_normal_config.sh'"
+    trials = 0
+    maximum_trials = 4
+    while trials < maximum_trials:
+        p = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+        if p.returncode == 0:
+            break
+        trials += 1
+        sleep(0.2)
+    remove_password_file()
+
 
 class BcuTestmode:
     def __init__(self):
@@ -80,15 +100,16 @@ class BcuTestmode:
 
     def start_bcu_service(self, base_name_in_ssh_config: str = BASE_HOSTNAME_IN_SSH_CONFIG, pw_file: str = '.base_password'):
         # command = f"cat {pw_file} | ssh -tt {base_name_in_ssh_config} 'sudo systemctl start {self._bcu_servicename}'"
-        command = "ssh basetest '/home/base/backup-server/hil/start_bcu_with_test_config.sh'"
+        command = f"ssh {base_name_in_ssh_config} '/home/base/backup-server/hil/start_bcu_with_test_config.sh'"
         p = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
         # Todo: verify service runs and retry if not
 
-    def stop_bcu_service(self, base_name_in_ssh_config: str = BASE_HOSTNAME_IN_SSH_CONFIG, pw_file: str = '.base_password'):
-        command = f"cat {pw_file} | ssh -tt {base_name_in_ssh_config} 'sudo systemctl stop {self._bcu_servicename}'"
-        command = "ssh basetest '/home/base/backup-server/hil/stop_bcu_with_test_config.sh'"
-        p = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
+
+    def stop_bcu_service(self, base_name_in_ssh_config: str = BASE_HOSTNAME_IN_SSH_CONFIG, pw_file: str = '.base_password'):
+        # command = f"cat {pw_file} | ssh -tt {base_name_in_ssh_config} 'sudo systemctl stop {self._bcu_servicename}'"
+        command = f"ssh {base_name_in_ssh_config} '/home/base/backup-server/hil/stop_bcu_with_test_config.sh'"
+        p = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
     def copy_test_config(self):
         LOG.info(f"create testmode file on backup server named {BASE_HOSTNAME_IN_SSH_CONFIG}")
@@ -105,15 +126,21 @@ class BcuTestmode:
         if not p.returncode == 0:
             LOG.warning("couldn't remove testmode file on BaSe")
 
-
     def __enter__(self):
+        """the way this works
+        - we first create the test-config and copy it over to the base into the bcu directory, so it is right next to the regular config.yaml
+        - we copy a hidden file that contains the password for the base-user on the base
+        - we run a script over ssh which reads the password file and uses it to start the backupserver.service (with arguments)
+        """
         self.copy_test_config()
+        copy_password_file()
         self.start_bcu_service()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.remove_test_config()
         self.stop_bcu_service()
+        remove_password_file()
 
 
 def create_test_data_on_nas():
@@ -164,9 +191,7 @@ def execute():
     # user has to start bcu hardware but NOT the backupserver.service
     # user has to check out the software they want to test
     check_prequisites()
-    print("""Basic Instructions
-- connect to the test backup-server wait to be asked to start the backup-server service    
-    """)
+    stop_bcu_service_normalmode()
     setup_logger()
     result_dir = create_result_directory()
     create_test_data_on_nas()
@@ -174,8 +199,8 @@ def execute():
         with BcuTestmode() as bcu_testmode:
             wait_for_no_ping()  # bcu shutdown
             wait_for_ping()  # bcu restart/wakeup
+        stop_bcu_service_normalmode()
     pcu_serial_logger.get_logfile()
     gather_bcu_logfile(result_dir)
 
     # assert stuff
-

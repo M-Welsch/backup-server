@@ -72,39 +72,60 @@ class PcuSerialLogger:
             return logfile.readlines()
 
 
+class BcuTestmode:
+    def __init__(self):
+        self._testmode_configfile_on_bcu = Path('/home/base/backup-server/software/bcu/config_hiltest.yaml')
+        arguments = subprocess.check_output(['systemd-escape', f'" --config {self._testmode_configfile_on_bcu.as_posix()}"']).decode().strip()
+        self._bcu_servicename = "backupserver@" + arguments + ".service"
+
+    def start_bcu_service(self, base_name_in_ssh_config: str = BASE_HOSTNAME_IN_SSH_CONFIG, pw_file: str = '.base_password'):
+        # command = f"cat {pw_file} | ssh -tt {base_name_in_ssh_config} 'sudo systemctl start {self._bcu_servicename}'"
+        command = "ssh basetest '/home/base/backup-server/hil/start_bcu_with_test_config.sh'"
+        p = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+        # Todo: verify service runs and retry if not
+
+    def stop_bcu_service(self, base_name_in_ssh_config: str = BASE_HOSTNAME_IN_SSH_CONFIG, pw_file: str = '.base_password'):
+        command = f"cat {pw_file} | ssh -tt {base_name_in_ssh_config} 'sudo systemctl stop {self._bcu_servicename}'"
+        command = "ssh basetest '/home/base/backup-server/hil/stop_bcu_with_test_config.sh'"
+        p = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+
+
+    def copy_test_config(self):
+        LOG.info(f"create testmode file on backup server named {BASE_HOSTNAME_IN_SSH_CONFIG}")
+        testmode_tempfile = Path("config_hiltest.yaml")
+        with open(testmode_tempfile, "w") as f:
+            f.write(TESTMODE_FILE_CONTENT)
+        subprocess.call(
+            f'scp {testmode_tempfile.as_posix()} {BASE_HOSTNAME_IN_SSH_CONFIG}:{self._testmode_configfile_on_bcu.as_posix()}'.split())
+        testmode_tempfile.unlink()
+
+    def remove_test_config(self):
+        LOG.info(f"removing testmode file on backup server named {BASE_HOSTNAME_IN_SSH_CONFIG}.")
+        p = subprocess.run(f'ssh {BASE_HOSTNAME_IN_SSH_CONFIG} rm {self._testmode_configfile_on_bcu.as_posix()}'.split())
+        if not p.returncode == 0:
+            LOG.warning("couldn't remove testmode file on BaSe")
+
+
+    def __enter__(self):
+        self.copy_test_config()
+        self.start_bcu_service()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.remove_test_config()
+        self.stop_bcu_service()
+
+
 def create_test_data_on_nas():
     # subprocess.call(Path.cwd().parent/"software"/"utils"/"generate_testdata_on_nas.sh")
     subprocess.call(["ssh", "nas", "/root/datasource/generate.sh"])
     LOG.info("created testdata on nas")
 
-def put_bcu_into_testmode():
-    LOG.info(f"create testmode file on backup server named {BASE_HOSTNAME_IN_SSH_CONFIG}")
-    testmode_tempfile = Path("testmode")
-    with open(testmode_tempfile, "w") as f:
-        f.write(TESTMODE_FILE_CONTENT)
-    subprocess.call(f'scp {testmode_tempfile.as_posix()} {BASE_HOSTNAME_IN_SSH_CONFIG}:backup-server/software/bcu'.split())
-    testmode_tempfile.unlink()
-
-
-def put_bcu_into_normal_mode():
-    LOG.info(f"removing testmode file on backup server named {BASE_HOSTNAME_IN_SSH_CONFIG}. Putting BaSe back to normal mode")
-    p = subprocess.run(f'ssh {BASE_HOSTNAME_IN_SSH_CONFIG} rm backup-server/software/bcu/testmode'.split())
-    if not p.returncode == 0:
-        LOG.warning("couldn't remove testmode file on BaSe")
-
-
-def wait_for_backup_server_service_to_start():
-    print("Action Required: log into backup-server and type 'sudo systemctl start backupserver && journalctl -u backupserver --follow'")
-    while True:
-        p = subprocess.run("ssh basetest systemctl status backupserver".split(), stdout=subprocess.PIPE)
-        if "Active: active" in p.stdout.decode():
-            LOG.info("backupserver service is active now")
-            break
-        sleep(1)
 
 def _ping(ip_address):
     p = subprocess.run(f'ping -c 1 -w 1 {ip_address}'.split(), stdout=subprocess.PIPE)
     return "1 received" in p.stdout.decode()
+
 
 def resolve_ip(host_name_in_ssh_config: str) -> str:
     command = "ssh -GT " + host_name_in_ssh_config + " | awk '/^hostname / { print $2 }'"
@@ -124,11 +145,6 @@ def wait_for_ping():
     while not _ping(resolve_ip(BASE_HOSTNAME_IN_SSH_CONFIG)):
         sleep(1)
     LOG.info(f"{BASE_HOSTNAME_IN_SSH_CONFIG} woke up")
-
-
-def stop_bcu_service():
-    print("Action Required: log into backup-server and type 'systemctl stop backupserver'")
-    # we don't wait here.
 
 
 def gather_bcu_logfile(result_dir: Path):
@@ -154,13 +170,10 @@ def execute():
     setup_logger()
     result_dir = create_result_directory()
     create_test_data_on_nas()
-    put_bcu_into_testmode()
     with PcuSerialLogger(result_dir/'pcu_serial.log') as pcu_serial_logger:
-        wait_for_backup_server_service_to_start()
-        put_bcu_into_normal_mode()
-        wait_for_no_ping()  # bcu shutdown
-        wait_for_ping()  # bcu restart/wakeup
-        stop_bcu_service()
+        with BcuTestmode() as bcu_testmode:
+            wait_for_no_ping()  # bcu shutdown
+            wait_for_ping()  # bcu restart/wakeup
     pcu_serial_logger.get_logfile()
     gather_bcu_logfile(result_dir)
 

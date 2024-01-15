@@ -13,7 +13,7 @@ ssh-keygen -t rsa
 
 cat setup/backupserver.service | sudo tee /etc/systemd/system/backupserver@.service > /dev/null
 sudo systemctl daemon-reload
-sudo systemctl enable backupserver@$(systemd-escape " --source backup_data_source").service
+sudo systemctl enable backupserver@$(systemd-escape " --config config.yaml").service
 
 ### udev (so the backup hdd and pcu serial interface are recognized and named)
 

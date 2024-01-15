@@ -3,9 +3,10 @@ import logging
 import subprocess
 from datetime import datetime, timedelta
 import argparse
+from pathlib import Path
 
 import pcu
-
+from config import load_config
 
 LOG = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ def setup_logger() -> None:
     console_handler.setFormatter(formatter)
 
     file_handler = logging.FileHandler('logfile.log')
-    file_handler.setLevel(logging.INFO)
+    file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
 
     logger.addHandler(console_handler)
@@ -58,16 +59,22 @@ async def handle_output(pipe):
         LOG.debug(f"Live Output: {line.decode().rstrip()}")
 
 
-async def backup():
-    nas_ip = subprocess.check_output("ssh -G nas | awk '/^hostname / { print $2 }'", shell=True)
-    nas_ip = nas_ip.decode().strip()
+def resolve_ip(host_name_in_ssh_config: str) -> str:
+    command = "ssh -G " + host_name_in_ssh_config + " | awk '/^hostname / { print $2 }'"
+    nas_ip = subprocess.check_output(command, shell=True)
+    return nas_ip.decode().strip()
+
+
+async def backup(config: dict):
+    source = config["rsync_source"]
+    nas_ip = resolve_ip(host_name_in_ssh_config="nas")
     LOG.debug(f"obtained IP Address of NAS: {nas_ip}")
     backup_command = [
         "rsync",
         "-aH",
         "--stats",
         "--delete",
-        f"{nas_ip}::backup_testdata_source/*",
+        f"{nas_ip}::{source}/*",
         "/media/BackupHDD/backups/current"
     ]
     LOG.debug(f"Backing up with command {' '.join(backup_command)}")
@@ -120,22 +127,27 @@ async def shutdown():
 
 async def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--test-args", default="", type=str, required=False)
     parser.add_argument("--no-shutdown", default=False, required=False)
-    parser.add_argument("--wait-before-shutdown", type=int, default=60, required=False)
     args = parser.parse_args()
-    if args.test_args:
-        with open("somefile", "w") as file:
-            file.write(f"test args with: {args.test_args}")
-        exit()
+    cfg = load_config(Path('config.yaml'))
     await init()
     await engage()
-    await backup()
+    await backup(cfg["backup"])
     await disengage()
-    await asyncio.sleep(args.wait_before_shutdown)
+    await wait_before_shutdown(cfg)
     await set_wakeup_time()
     if not args.no_shutdown:
         await shutdown()
+
+
+async def wait_before_shutdown(cfg):
+    try:
+        sleep_duration = cfg["process"]["seconds_between_backup_end_and_shutdown"]
+    except KeyError:
+        sleep_duration = 60
+        LOG.warning("couldn't get sleep duration from config file, default to 60")
+    LOG.info(f"waiting for {sleep_duration}s before shutdown")
+    await asyncio.sleep(sleep_duration)
 
 
 if __name__ == "__main__":

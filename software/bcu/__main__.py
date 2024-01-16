@@ -4,6 +4,7 @@ import subprocess
 from datetime import datetime, timedelta
 import argparse
 from pathlib import Path
+import signal
 
 import pcu
 from config import load_config
@@ -11,7 +12,7 @@ from config import load_config
 LOG = logging.getLogger(__name__)
 
 
-def setup_logger() -> None:
+def setup_logger(logger_config: dict) -> None:
     LOG.debug("Setting up logger...")
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
@@ -22,7 +23,8 @@ def setup_logger() -> None:
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
 
-    file_handler = logging.FileHandler('logfile.log')
+    filename = logger_config.get('filename', 'logfile.log')
+    file_handler = logging.FileHandler(filename)
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
 
@@ -30,9 +32,17 @@ def setup_logger() -> None:
     logger.addHandler(file_handler)
 
 
-async def init():
-    setup_logger()
+def handle_termination(signum, frame):
+    LOG.info(f"terminated by user. Initiating graceful switchoff. Signal: {signum}, Frame: {frame}")
+    # stop rsync
+    # disengage
+
+
+async def init(logger_config: dict):
+    setup_logger(logger_config)
     await pcu.handshake()
+    signal.signal(signal.SIGINT, handle_termination)
+    signal.signal(signal.SIGTERM, handle_termination)
 
 
 async def engage() -> None:
@@ -109,6 +119,16 @@ async def disengage() -> None:
     await pcu.cmd.undock()
 
 
+async def wait_before_shutdown(cfg):
+    try:
+        sleep_duration = cfg["process"]["seconds_between_backup_end_and_shutdown"]
+    except KeyError:
+        sleep_duration = 60
+        LOG.warning("couldn't get sleep duration from config file, default to 60")
+    LOG.info(f"waiting for {sleep_duration}s before shutdown")
+    await asyncio.sleep(sleep_duration)
+
+
 async def set_wakeup_time() -> None:
     LOG.info("Programming PCU. Setting current time and time for next wakeup")
     await pcu.set.date.now(datetime.now())
@@ -128,9 +148,11 @@ async def shutdown():
 async def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-shutdown", default=False, required=False)
+    parser.add_argument("--config", default="config.yaml", type=str, required=False)
     args = parser.parse_args()
-    cfg = load_config(Path('config.yaml'))
-    await init()
+    cfg = load_config(Path(args.config))
+    LOG.info(f"loading config file {args.config}")
+    await init(cfg["logger"])
     await engage()
     await backup(cfg["backup"])
     await disengage()
@@ -138,16 +160,6 @@ async def main() -> None:
     await set_wakeup_time()
     if not args.no_shutdown:
         await shutdown()
-
-
-async def wait_before_shutdown(cfg):
-    try:
-        sleep_duration = cfg["process"]["seconds_between_backup_end_and_shutdown"]
-    except KeyError:
-        sleep_duration = 60
-        LOG.warning("couldn't get sleep duration from config file, default to 60")
-    LOG.info(f"waiting for {sleep_duration}s before shutdown")
-    await asyncio.sleep(sleep_duration)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 comment: "backup server configuration for normal operation"
 logger:
+  filename: 'logfile.log'
 
 backup:
   nas_name_in_ssh_config: nas

@@ -14,6 +14,9 @@ PCU_SERIAL_BAUDRATE = 38400
 
 TESTMODE_FILE_CONTENT = """comment: "testmode file"
 
+logger:
+  filename: "temp_logfile_hiltest.log"
+
 backup:
   rsync_source: "backup_testdata_source"
   
@@ -24,7 +27,7 @@ BASE_HOSTNAME_IN_SSH_CONFIG = "basetest"
 
 HIL_RESULT_DIR = Path.cwd().parent/"results"
 
-def setup_logger() -> None:
+def setup_logger(result_dir: Path) -> None:
     LOG.debug("Setting up logger...")
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
@@ -35,7 +38,7 @@ def setup_logger() -> None:
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
 
-    file_handler = logging.FileHandler('logfile.log')
+    file_handler = logging.FileHandler(result_dir/'hil.log')
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
 
@@ -82,13 +85,16 @@ def stop_bcu_service_normalmode(base_name_in_ssh_config: str = BASE_HOSTNAME_IN_
     copy_password_file()
     command = f"ssh {base_name_in_ssh_config} '/home/base/backup-server/hil/stop_bcu_with_normal_config.sh'"
     trials = 0
-    maximum_trials = 4
+    maximum_trials = 10
     while trials < maximum_trials:
+        LOG.debug(f'attempting to stop bcu service with "{command}"')
         p = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
         if p.returncode == 0:
             break
         trials += 1
-        sleep(0.2)
+        sleep(0.5)
+    if trials == maximum_trials:
+        LOG.warning(f"couldn't stop bcu service within {maximum_trials} trials, waiting 0.5s in between")
     remove_password_file()
 
 
@@ -175,7 +181,7 @@ def wait_for_ping():
 
 
 def gather_bcu_logfile(result_dir: Path):
-    subprocess.run(f'scp basetest:/home/base/backup-server/software/bcu/logfile.log {result_dir/"bcu.log"}'.split())
+    subprocess.run(f'scp basetest:/home/base/backup-server/software/bcu/temp_logfile_hiltest.log {result_dir/"bcu.log"}'.split())
     LOG.info(f"got bcu logfile")
 
 
@@ -192,10 +198,10 @@ def execute():
     # user has to check out the software they want to test
     check_prequisites()
     stop_bcu_service_normalmode()
-    setup_logger()
     result_dir = create_result_directory()
+    setup_logger(result_dir)
     create_test_data_on_nas()
-    with PcuSerialLogger(result_dir/'pcu_serial.log') as pcu_serial_logger:
+    with PcuSerialLogger(result_dir/'pcu.log') as pcu_serial_logger:
         with BcuTestmode() as bcu_testmode:
             wait_for_no_ping()  # bcu shutdown
             wait_for_ping()  # bcu restart/wakeup

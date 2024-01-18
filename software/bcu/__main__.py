@@ -106,7 +106,6 @@ async def backup(config: dict):
     stderr = await process.stderr.read()
     if stderr:
         LOG.error(f"Fehlerausgabe: {stderr.decode()}")
-        exit(-1)  # to trace bug #19
 
 
 async def disengage() -> None:

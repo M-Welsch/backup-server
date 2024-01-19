@@ -2,10 +2,12 @@
 Description=Backup Server's Backup Control Unit (BCU)
 
 [Service]
-Type=simple
 User=base
+Group=base
+Type=simple
+Environment="SCRIPT_ARGS=%I"
 WorkingDirectory=/home/base/backup-server/software/bcu
-ExecStart=python3 /home/base/backup-server/software/bcu
+ExecStart=python3 /home/base/backup-server/software/bcu $SCRIPT_ARGS
 
 [Install]
-WantedBy=multi-user.target"
+WantedBy=multi-user.target

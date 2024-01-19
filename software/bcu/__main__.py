@@ -3,14 +3,16 @@ import logging
 import subprocess
 from datetime import datetime, timedelta
 import argparse
+from pathlib import Path
+import signal
 
 import pcu
-
+from config import load_config
 
 LOG = logging.getLogger(__name__)
 
 
-def setup_logger() -> None:
+def setup_logger(logger_config: dict) -> None:
     LOG.debug("Setting up logger...")
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
@@ -21,17 +23,26 @@ def setup_logger() -> None:
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
 
-    file_handler = logging.FileHandler('logfile.log')
-    file_handler.setLevel(logging.INFO)
+    filename = logger_config.get('filename', 'logfile.log')
+    file_handler = logging.FileHandler(filename)
+    file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
 
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
 
 
-async def init():
-    setup_logger()
+def handle_termination(signum, frame):
+    LOG.info(f"terminated by user. Initiating graceful switchoff. Signal: {signum}, Frame: {frame}")
+    # stop rsync
+    # disengage
+
+
+async def init(logger_config: dict):
+    setup_logger(logger_config)
     await pcu.handshake()
+    signal.signal(signal.SIGINT, handle_termination)
+    signal.signal(signal.SIGTERM, handle_termination)
 
 
 async def engage() -> None:
@@ -58,16 +69,22 @@ async def handle_output(pipe):
         LOG.debug(f"Live Output: {line.decode().rstrip()}")
 
 
-async def backup():
-    nas_ip = subprocess.check_output("ssh -G nas | awk '/^hostname / { print $2 }'", shell=True)
-    nas_ip = nas_ip.decode().strip()
+def resolve_ip(host_name_in_ssh_config: str) -> str:
+    command = "ssh -G " + host_name_in_ssh_config + " | awk '/^hostname / { print $2 }'"
+    nas_ip = subprocess.check_output(command, shell=True)
+    return nas_ip.decode().strip()
+
+
+async def backup(config: dict):
+    source = config["rsync_source"]
+    nas_ip = resolve_ip(host_name_in_ssh_config="nas")
     LOG.debug(f"obtained IP Address of NAS: {nas_ip}")
     backup_command = [
         "rsync",
         "-aH",
         "--stats",
         "--delete",
-        f"{nas_ip}::backup_testdata_source/*",
+        f"{nas_ip}::{source}/*",
         "/media/BackupHDD/backups/current"
     ]
     LOG.debug(f"Backing up with command {' '.join(backup_command)}")
@@ -89,7 +106,6 @@ async def backup():
     stderr = await process.stderr.read()
     if stderr:
         LOG.error(f"Fehlerausgabe: {stderr.decode()}")
-        exit(-1)  # to trace bug #19
 
 
 async def disengage() -> None:
@@ -100,6 +116,16 @@ async def disengage() -> None:
     await pcu.cmd.power.hdd.off()
     LOG.debug("Undocking...")
     await pcu.cmd.undock()
+
+
+async def wait_before_shutdown(cfg):
+    try:
+        sleep_duration = cfg["process"]["seconds_between_backup_end_and_shutdown"]
+    except KeyError:
+        sleep_duration = 60
+        LOG.warning("couldn't get sleep duration from config file, default to 60")
+    LOG.info(f"waiting for {sleep_duration}s before shutdown")
+    await asyncio.sleep(sleep_duration)
 
 
 async def set_wakeup_time() -> None:
@@ -121,13 +147,15 @@ async def shutdown():
 async def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-shutdown", default=False, required=False)
-    parser.add_argument("--wait-before-shutdown", type=int, default=60, required=False)
+    parser.add_argument("--config", default="config.yaml", type=str, required=False)
     args = parser.parse_args()
-    await init()
+    cfg = load_config(Path(args.config))
+    LOG.info(f"loading config file {args.config}")
+    await init(cfg["logger"])
     await engage()
-    await backup()
+    await backup(cfg["backup"])
     await disengage()
-    await asyncio.sleep(args.wait_before_shutdown)
+    await wait_before_shutdown(cfg)
     await set_wakeup_time()
     if not args.no_shutdown:
         await shutdown()

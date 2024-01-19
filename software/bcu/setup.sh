@@ -11,9 +11,9 @@ ssh-keygen -t rsa
 
 ### systemd (so bcu starts up on system startup)
 
-cat setup/backupserver.service | sudo tee /etc/systemd/system/backupserver.service > /dev/null
+cat setup/backupserver.service | sudo tee /etc/systemd/system/backupserver@.service > /dev/null
 sudo systemctl daemon-reload
-sudo systemctl enable backupserver
+sudo systemctl enable backupserver@$(systemd-escape " --config config.yaml").service
 
 ### udev (so the backup hdd and pcu serial interface are recognized and named)
 
@@ -33,3 +33,13 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub nas
 ### sudoers (enable base to perform shutdown)
 
 cat setup/sudoers | sudo tee -a /etc/sudoers > /dev/null
+
+## Hints
+
+```shell
+# start backup-server
+systemctl start backupserver@$(systemd-escape " --source backup_data_source").service
+
+# supervise
+journalctl -u 'backupserver@*'
+```

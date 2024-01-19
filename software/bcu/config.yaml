@@ -1,0 +1,10 @@
+comment: "backup server configuration for normal operation"
+logger:
+  filename: 'logfile.log'
+
+backup:
+  nas_name_in_ssh_config: nas
+  rsync_source: backup_data_source
+
+process:
+  seconds_between_backup_end_and_shutdown: 60

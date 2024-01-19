@@ -351,6 +351,7 @@ static pcu_returncode_e _getVersion(BaseSequentialStream *chp) {
     chprintf(chp, "commit: %s\n", pcu_build_git_last_commit);
     chprintf(chp, "commit_time: %s\n", pcu_build_git_commit_time);
     chprintf(chp, "build_date: %s\n", pcu_build_date);
+    return pcuSUCCESS;
 }
 
 

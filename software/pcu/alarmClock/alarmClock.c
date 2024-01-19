@@ -138,8 +138,8 @@ pcu_returncode_e alarmClock_RtcDateTimeToStr(char* outstr, const RTCDateTime* ti
                timespec->millisecond / 3600000U,
                (timespec->millisecond % 3600000U) / 60000U,
                (timespec->millisecond % 60000U) / 1000U,
-               timespec->month,
                timespec->day,
+               timespec->month,
                timespec->year + 1980U);
     return pcuSUCCESS;
 }

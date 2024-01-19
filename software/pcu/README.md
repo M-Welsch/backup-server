@@ -25,7 +25,6 @@ A(Power Up)-->B(Dock external HDD)-->C(Conduct Backup)-->D(Schedule Next Backup)
 the next hardware version shall be more flexible compared to our custom fit to the banana pi.
 # base-pcu
 
-
 This has the directories
 
 - ChibiOS
@@ -36,4 +35,10 @@ as submodules.
 ```shell
 git submodule add git@github.com:ChibiOS/ChibiOS.git
 git submodule add git@github.com:ChibiOS/ChibiOS-Contrib.git
+```
+
+open `os/various/shell/shell.h` and change line 57
+
+```c
+#define SHELL_MAX_ARGUMENTS         10  // originally 4
 ```

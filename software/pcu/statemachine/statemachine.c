@@ -2,8 +2,11 @@
 #include "power.h"
 #include "pcu_events.h"
 #include "bcuCommunication.h"
+#include "debug.h"
 
 static wakeup_reason_e wakeup_reason = WAKEUP_REASON_POWER_ON;
+static uint32_t milliseconds_to_shutdown = DEFAULT_MILLISECONDS_TO_SHUTDOWN;
+static state_codes_e current_state = STATE_INIT;
 
 wakeup_reason_e statemachine_getWakeupReason(void) {
     return wakeup_reason;
@@ -14,10 +17,19 @@ wakeup_reason_e statemachine_getWakeupReason(void) {
  * It then reacts to those events and probably transitions to another state.
  */
 
+
+/**
+ * @return necessary to undergo the power activation process on entering active state on initial powerup
+ */
+int STATE_INIT_state(void) {
+    return STATE_ACTIVE;
+}
+
 /**
  * @return STATE_SHUTDOWN_REQUESTED if BCU requests shutdown, otherwise STATE_ACTIVE
  */
 int STATE_ACTIVE_state(void) {
+    debug_log("[I] performing ACTIVE STATE action\n");
     state_codes_e next_state = STATE_ACTIVE;
     sendToBcu("active state");
     eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
@@ -33,9 +45,10 @@ int STATE_ACTIVE_state(void) {
  * @return STATE_DEEP_SLEEP if shutdown timer expires, STATE_ACTIVE if BCU aborts shutdown
  */
 int STATE_SHUTDOWN_REQUESTED_state(void) {
+    debug_log("[I] performing SHUTDOWN REQUESTED STATE action\n");
     state_codes_e next_state = STATE_DEEP_SLEEP;
     sendToBcu("shutdown_requested state");
-    eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(5000));
+    eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(milliseconds_to_shutdown));
     if (evt & (EVENT_SHUTDOWN_ABORTED | EVENT_WAKEUP_REQUESTED_BY_ALARMCLOCK )) {
         next_state = STATE_ACTIVE;
     }
@@ -46,6 +59,7 @@ int STATE_SHUTDOWN_REQUESTED_state(void) {
  * @return
  */
 int STATE_DEEP_SLEEP_state(void) {
+    debug_log("[I] performing DEEP SLEEP STATE action\n");
     state_codes_e next_state = STATE_DEEP_SLEEP;
     sendToBcu("deep_sleep state");
     eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
@@ -64,6 +78,7 @@ int STATE_DEEP_SLEEP_state(void) {
 }
 
 int STATE_HMI_state(void) {
+    debug_log("[I] performing HMI STATE action\n");
     state_codes_e next_state = STATE_DEEP_SLEEP;
     sendToBcu("hmi state");
     eventmask_t evt = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_MS2I(60000));
@@ -86,6 +101,7 @@ int STATE_HMI_state(void) {
 
 /* array and enum must be in sync! */
 int (* state[])(void) = {
+    STATE_INIT_state,
     STATE_ACTIVE_state,
     STATE_SHUTDOWN_REQUESTED_state,
     STATE_DEEP_SLEEP_state,
@@ -98,6 +114,7 @@ struct transition {
 };
 
 struct transition state_transitions[] = {
+        {STATE_INIT, STATE_ACTIVE},
         {STATE_ACTIVE, STATE_SHUTDOWN_REQUESTED},
         {STATE_SHUTDOWN_REQUESTED,   STATE_ACTIVE},
         {STATE_SHUTDOWN_REQUESTED,   STATE_DEEP_SLEEP},
@@ -108,7 +125,6 @@ struct transition state_transitions[] = {
 };
 
 #define EXIT_STATE STATE_DEEP_SLEEP
-#define ENTRY_STATE STATE_ACTIVE
 
 #define DIMENSION(x) (uint8_t)(sizeof(x)/sizeof(x[0]))
 
@@ -129,8 +145,10 @@ bool transition_valid(state_codes_e cur_state, state_codes_e desired_state) {
  */
 state_codes_e statemachine_transitionToState(state_codes_e current_state, state_codes_e desired_state) {
     if (!transition_valid(current_state, desired_state)) {
+        debug_log("[W] statemachine transitioning from %d to %d is INVALID\n", current_state, desired_state);
         return current_state;
     }
+    debug_log("[I] statemachine transitioning from %d to %d\n", current_state, desired_state);
 
     /* perform actions on leaving a state */
     switch (current_state) {
@@ -163,8 +181,7 @@ state_codes_e statemachine_transitionToState(state_codes_e current_state, state_
  */
 void statemachine_mainloop(void) {
     int (* state_fun)(void);
-    state_codes_e current_state = ENTRY_STATE;
-    state_codes_e desired_state = ENTRY_STATE;
+    state_codes_e desired_state = STATE_ACTIVE;
 
     power5v();  // necessary to turn it on initially
 
@@ -201,4 +218,12 @@ void statemachine_sendEventFromIsr(eventmask_t events) {
     chSysLockFromISR();
     chEvtSignalI(uart_thread, events);
     chSysUnlockFromISR();
+}
+
+void statemachine_setMillisecondsToShutdown(uint32_t milliseconds) {
+    milliseconds_to_shutdown = milliseconds;
+}
+
+state_codes_e statemachine_getCurrentState(void) {
+    return current_state;
 }

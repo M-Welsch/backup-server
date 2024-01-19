@@ -22,21 +22,22 @@
 #include "docking.h"
 #include "statemachine.h"
 #include "hmi/hmi.h"
+#include "debug.h"
 
 int main(void) {
     halInit();
     dockingInit();
 
     chSysInit();
+    debug_init();
+    debug_log("[I] PCU powered up\n");
     bcuCommunication_init();
     alarmClock_init();
     measurement_init();
     statemachine_init();
     hmi_init();
-    //adcSTM32SetCCR(ADC_CCR_TSEN | ADC_CCR_VREFEN);
-
 
     while (true) {
-        chThdSleepMilliseconds(10000);
+        chThdSleepMilliseconds(1000);
     }
 }

@@ -56,9 +56,17 @@ async def engage() -> None:
             raise RuntimeError("couldn't dock with two trials")
     LOG.debug("Switching HDD power on...")
     await pcu.cmd.power.hdd.on()
-    await asyncio.sleep(2)  # workaround for #26
+    await asyncio.sleep(10)  # workaround for #26
     LOG.debug("Mounting HDD...")
-    subprocess.call(["mount", "/dev/BACKUPHDD"])
+    trials = 0
+    maximum_trials = 3
+    while trials < maximum_trials:
+        subprocess.call("mount /dev/BACKUPHDD", shell=True)  # Todo: why do I have to use the shell here??
+        await asyncio.sleep(5)
+        if Path('/media/BackupHDD').is_mount():
+            break
+        LOG.warning("mounting of backupHDD failed, try another time")
+        trials += 1
 
 
 async def handle_output(pipe):
@@ -111,9 +119,10 @@ async def backup(config: dict):
 async def disengage() -> None:
     LOG.info("Disconnecting Backup HDD")
     LOG.debug("Unmounting HDD...")
-    subprocess.call(["umount", "/dev/BACKUPHDD"])
+    subprocess.call("umount /dev/BACKUPHDD", shell=True)
     LOG.debug("Switching HDD power off...")
     await pcu.cmd.power.hdd.off()
+    await asyncio.sleep(20)
     LOG.debug("Undocking...")
     await pcu.cmd.undock()
 
@@ -132,9 +141,9 @@ async def set_wakeup_time() -> None:
     LOG.info("Programming PCU. Setting current time and time for next wakeup")
     await pcu.set.date.now(datetime.now())
     LOG.debug(f"read current time from pcu: {await pcu.get.date.now()}")
-    await pcu.set.date.wakeup(datetime.now() + timedelta(minutes=1))
+    await pcu.set.date.wakeup(datetime.now() + timedelta(hours=12))
     LOG.debug(f"read wakeup time from pcu: {await pcu.get.date.wakeup()}")
-    await pcu.set.date.backup(datetime.now() + timedelta(minutes=1))
+    await pcu.set.date.backup(datetime.now() + timedelta(hours=12))
     LOG.debug(f"read backup time from pcu: {await pcu.get.date.backup()}")
 
 

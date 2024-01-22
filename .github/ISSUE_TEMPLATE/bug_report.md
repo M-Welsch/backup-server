@@ -16,6 +16,8 @@ A clear and concise description of what you expected to happen.
 ## Actual behavior
 what is observed
 
+## What happens if we don't solve it (aka why is it important)
+
 ## To Reproduce
 Steps to reproduce the behavior:
 1. 

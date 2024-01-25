@@ -2,11 +2,14 @@ import asyncio
 import logging
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import List, Optional
 
 from serial import Serial
 
 LOG = logging.getLogger(__name__)
+
+PCU_DEVICE_NODE = "/dev/ttyBASEPCU"
 
 
 class DockingState(Enum):
@@ -190,7 +193,7 @@ class set:
 async def call_pcu(command: str) -> str:
     LOG.debug(f"calling pcu with {command}")
     command_bytes = (command + "\r\n").encode()
-    with Serial("/dev/ttyBASEPCU", baudrate=38400, timeout=1) as ser:  # timeout is critical
+    with Serial(PCU_DEVICE_NODE, baudrate=38400, timeout=1) as ser:  # timeout is critical
         ser.write(command_bytes)
         await asyncio.sleep(0.5)
         output = ser.read_until("ch>")
@@ -205,8 +208,18 @@ async def _probe() -> str:
     return await call_pcu("probe")
 
 
-async def handshake() -> None:
-    maximum_trials = 4
+async def _check_pcu_node(maximum_trials: int = 4) -> None:
+    trials = 0
+    LOG.debug(f"checking for PCU at {PCU_DEVICE_NODE}")
+    while not Path(PCU_DEVICE_NODE).exists():
+        LOG.warning(f"{PCU_DEVICE_NODE} not found, retrying ...")
+        trials += 1
+        if trials >= maximum_trials:
+            raise RuntimeError("PCU device not seriously not available. That's bad.")
+        await asyncio.sleep(1)
+
+
+async def _try_probing(maximum_trials: int = 4) -> None:
     trials = 0
     LOG.debug("performing handshake with pcu")
     while not (response := await _probe()) == 'Echo':
@@ -214,6 +227,12 @@ async def handshake() -> None:
         trials += 1
         if trials >= maximum_trials:
             raise RuntimeError("Cannot handshake with PCU")
+        await asyncio.sleep(1)
+
+
+async def handshake() -> None:
+    await _check_pcu_node(4)
+    await _try_probing(4)
 
 
 async def _get_analog(measurement: AnalogMeasurement) -> int:

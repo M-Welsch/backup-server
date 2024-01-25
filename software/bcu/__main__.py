@@ -6,6 +6,7 @@ import argparse
 from pathlib import Path
 import signal
 
+import config
 import pcu
 from config import load_config
 
@@ -41,8 +42,8 @@ def handle_termination(signum, frame):
 async def init(logger_config: dict):
     setup_logger(logger_config)
     await pcu.handshake()
-    signal.signal(signal.SIGINT, handle_termination)
-    signal.signal(signal.SIGTERM, handle_termination)
+    # signal.signal(signal.SIGINT, handle_termination)
+    # signal.signal(signal.SIGTERM, handle_termination)
 
 
 async def engage() -> None:
@@ -69,12 +70,15 @@ async def engage() -> None:
         trials += 1
 
 
-async def handle_output(pipe):
+async def handle_output(pipe, name):
     while True:
         line = await pipe.readline()
         if not line:
             break
-        LOG.debug(f"Live Output: {line.decode().rstrip()}")
+        if name == "stdout":
+            LOG.debug(f"Live Output: {line.decode().rstrip()}")
+        if name == "stderr":
+            LOG.warning(f"Live Output: {line.decode().rstrip()}")
 
 
 def resolve_ip(host_name_in_ssh_config: str) -> str:
@@ -92,7 +96,7 @@ async def backup(config: dict):
         "-aH",
         "--stats",
         "--delete",
-        f"{nas_ip}::{source}/*",
+        f"{nas_ip}::{source}/",
         "/media/BackupHDD/backups/current"
     ]
     LOG.debug(f"Backing up with command {' '.join(backup_command)}")
@@ -103,17 +107,20 @@ async def backup(config: dict):
         stderr=subprocess.PIPE
     )
 
-    output_task = asyncio.create_task(handle_output(process.stdout))
+    output_task = asyncio.create_task(handle_output(process.stdout, "stdout"))
+    output_task_stderr = asyncio.create_task(handle_output(process.stderr, "stderr"))
 
     LOG.info("Starting Backup...")
     await process.wait()
     LOG.info("Backup finished.")
     await output_task
-    LOG.debug("Backup output task finished.")
+    LOG.debug("Backup stdout output task finished.")
+    await output_task_stderr
+    LOG.debug("Backup stderr output task finished.")
 
-    stderr = await process.stderr.read()
-    if stderr:
-        LOG.error(f"Fehlerausgabe: {stderr.decode()}")
+    # stderr = await process.stderr.read()
+    # if stderr:
+    #     LOG.error(f"Fehlerausgabe: {stderr.decode()}")
 
 
 async def disengage() -> None:
@@ -137,13 +144,13 @@ async def wait_before_shutdown(cfg):
     await asyncio.sleep(sleep_duration)
 
 
-async def set_wakeup_time() -> None:
+async def set_wakeup_time(sleep_time: timedelta) -> None:
     LOG.info("Programming PCU. Setting current time and time for next wakeup")
     await pcu.set.date.now(datetime.now())
     LOG.debug(f"read current time from pcu: {await pcu.get.date.now()}")
-    await pcu.set.date.wakeup(datetime.now() + timedelta(hours=12))
+    await pcu.set.date.wakeup(datetime.now() + sleep_time)
     LOG.debug(f"read wakeup time from pcu: {await pcu.get.date.wakeup()}")
-    await pcu.set.date.backup(datetime.now() + timedelta(hours=12))
+    await pcu.set.date.backup(datetime.now() + sleep_time)
     LOG.debug(f"read backup time from pcu: {await pcu.get.date.backup()}")
 
 
@@ -155,7 +162,7 @@ async def shutdown():
 
 async def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-shutdown", default=False, required=False)
+    parser.add_argument("--no-shutdown", default=False, required=False, action='store_true')
     parser.add_argument("--config", default="config.yaml", type=str, required=False)
     args = parser.parse_args()
     cfg = load_config(Path(args.config))
@@ -165,7 +172,7 @@ async def main() -> None:
     await backup(cfg["backup"])
     await disengage()
     await wait_before_shutdown(cfg)
-    await set_wakeup_time()
+    await set_wakeup_time(config.get_sleep_time(cfg["process"]["time_between_backups"]))
     if not args.no_shutdown:
         await shutdown()
 

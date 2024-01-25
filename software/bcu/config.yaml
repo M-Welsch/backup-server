@@ -8,3 +8,6 @@ backup:
 
 process:
   seconds_between_backup_end_and_shutdown: 60
+  time_between_backups:
+    hours: 1
+    minutes: 0

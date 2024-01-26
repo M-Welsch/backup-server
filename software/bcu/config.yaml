@@ -7,4 +7,8 @@ backup:
   rsync_source: backup_data_source
 
 process:
-  seconds_between_backup_end_and_shutdown: 60
+  seconds_between_backup_end_and_shutdown: 300
+  time_between_backups:
+    days: 1
+    hours: 0
+    minutes: 0

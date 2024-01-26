@@ -189,7 +189,6 @@ class set:
             raise NotImplementedError
 
 
-
 async def call_pcu(command: str) -> str:
     LOG.debug(f"calling pcu with {command}")
     command_bytes = (command + "\r\n").encode()

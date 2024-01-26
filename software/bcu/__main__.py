@@ -4,13 +4,16 @@ import subprocess
 from datetime import datetime, timedelta
 import argparse
 from pathlib import Path
-import signal
+from typing import Callable
 
 import config
 import pcu
 from config import load_config
 
 LOG = logging.getLogger(__name__)
+
+
+HDD_SPINDOWN_SECONDS = 20
 
 
 def setup_logger(logger_config: dict) -> None:
@@ -33,17 +36,9 @@ def setup_logger(logger_config: dict) -> None:
     logger.addHandler(file_handler)
 
 
-def handle_termination(signum, frame):
-    LOG.info(f"terminated by user. Initiating graceful switchoff. Signal: {signum}, Frame: {frame}")
-    # stop rsync
-    # disengage
-
-
 async def init(logger_config: dict):
     setup_logger(logger_config)
     await pcu.handshake()
-    # signal.signal(signal.SIGINT, handle_termination)
-    # signal.signal(signal.SIGTERM, handle_termination)
 
 
 async def engage() -> None:
@@ -62,7 +57,7 @@ async def engage() -> None:
     trials = 0
     maximum_trials = 3
     while trials < maximum_trials:
-        subprocess.call("mount /dev/BACKUPHDD", shell=True)  # Todo: why do I have to use the shell here??
+        subprocess.call("mount /dev/BACKUPHDD", shell=True)
         await asyncio.sleep(5)
         if Path('/media/BackupHDD').is_mount():
             break
@@ -70,15 +65,12 @@ async def engage() -> None:
         trials += 1
 
 
-async def handle_output(pipe, name):
+async def handle_output(pipe, log_func: Callable):
     while True:
         line = await pipe.readline()
         if not line:
             break
-        if name == "stdout":
-            LOG.debug(f"Live Output: {line.decode().rstrip()}")
-        if name == "stderr":
-            LOG.warning(f"Live Output: {line.decode().rstrip()}")
+        log_func(f"Live Output: {line.decode().rstrip()}")
 
 
 def resolve_ip(host_name_in_ssh_config: str) -> str:
@@ -97,7 +89,7 @@ async def backup(config: dict):
         "--stats",
         "--delete",
         f"{nas_ip}::{source}/",
-        "/media/BackupHDD/backups/current"
+        "/media/BackupHDD/backups/testdata"
     ]
     LOG.debug(f"Backing up with command {' '.join(backup_command)}")
     process = await asyncio.create_subprocess_exec(
@@ -107,8 +99,8 @@ async def backup(config: dict):
         stderr=subprocess.PIPE
     )
 
-    output_task = asyncio.create_task(handle_output(process.stdout, "stdout"))
-    output_task_stderr = asyncio.create_task(handle_output(process.stderr, "stderr"))
+    output_task = asyncio.create_task(handle_output(process.stdout, LOG.debug))
+    output_task_stderr = asyncio.create_task(handle_output(process.stderr, LOG.error))
 
     LOG.info("Starting Backup...")
     await process.wait()
@@ -118,10 +110,6 @@ async def backup(config: dict):
     await output_task_stderr
     LOG.debug("Backup stderr output task finished.")
 
-    # stderr = await process.stderr.read()
-    # if stderr:
-    #     LOG.error(f"Fehlerausgabe: {stderr.decode()}")
-
 
 async def disengage() -> None:
     LOG.info("Disconnecting Backup HDD")
@@ -129,7 +117,7 @@ async def disengage() -> None:
     subprocess.call("umount /dev/BACKUPHDD", shell=True)
     LOG.debug("Switching HDD power off...")
     await pcu.cmd.power.hdd.off()
-    await asyncio.sleep(20)
+    await asyncio.sleep(HDD_SPINDOWN_SECONDS)
     LOG.debug("Undocking...")
     await pcu.cmd.undock()
 
@@ -166,8 +154,8 @@ async def main() -> None:
     parser.add_argument("--config", default="config.yaml", type=str, required=False)
     args = parser.parse_args()
     cfg = load_config(Path(args.config))
-    LOG.info(f"loading config file {args.config}")
     await init(cfg["logger"])
+    LOG.info(f"loading config file {args.config}")
     await engage()
     await backup(cfg["backup"])
     await disengage()

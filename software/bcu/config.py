@@ -17,6 +17,7 @@ def load_config(config_file: Path) -> dict:
 
 
 def get_sleep_time(config) -> timedelta:
-    hours = config.get("hours", 1)
-    minutes = config.get("minutes", 30)
-    return timedelta(hours=hours, minutes=minutes)
+    days = config.get("days", 7)
+    hours = config.get("hours", 0)
+    minutes = config.get("minutes", 0)
+    return timedelta(days=days, hours=hours, minutes=minutes)

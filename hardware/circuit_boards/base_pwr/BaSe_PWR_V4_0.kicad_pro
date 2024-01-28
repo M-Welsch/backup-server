@@ -580,7 +580,7 @@
       "model_mode": 0,
       "workbook_filename": ""
     },
-    "page_layout_descr_file": "",
+    "page_layout_descr_file": "/home/max/Stones/Nextcloud/C_Referenzen/C01_Stammdaten/C01b_CAD-Daten/_kicad/g7_drawing_frame.kicad_wks",
     "plot_directory": "",
     "spice_adjust_passive_values": false,
     "spice_current_sheet_as_root": false,
@@ -597,5 +597,14 @@
       ""
     ]
   ],
-  "text_variables": {}
+  "text_variables": {
+    "FIELD_APPROVED_BY": "",
+    "FIELD_COMPONENT": "BaSe hw4 all Circuit Boards",
+    "FIELD_DESIGN_BY": "Maximilian Welsch",
+    "FIELD_GIT_BRANCH": "main",
+    "FIELD_GIT_COMMIT_HASH": "4537f1a",
+    "FIELD_GIT_ORIGIN": "git@github.com:M-Welsch/backup-server.git",
+    "FIELD_PRODUCT": "Backup Server",
+    "FIELD_VERSION": "4.0"
+  }
 }

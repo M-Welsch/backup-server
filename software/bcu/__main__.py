@@ -89,7 +89,7 @@ async def backup(config: dict):
         "--stats",
         "--delete",
         f"{nas_ip}::{source}/",
-        "/media/BackupHDD/backups"
+        "/media/BackupHDD/backups/current"
     ]
     LOG.debug(f"Backing up with command {' '.join(backup_command)}")
     process = await asyncio.create_subprocess_exec(

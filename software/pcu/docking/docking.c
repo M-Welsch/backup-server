@@ -135,7 +135,8 @@ bool getFromCurrentLog(uint16_t *outval, const uint16_t ptr) {
 pcu_returncode_e dock(void) {
     debug_log("[I] docking start\n");
     getDockingState();  // this updates the global static dockingState
-    if (dockingState != pcu_dockingState1_undocked && dockingState != pcu_dockingState9_inbetween && dockingState != pcu_dockingState_unknown) {
+    if (measurement_getDocked()) {
+        debug_log("[I] already docked\n");
         return pcuSUCCESS;
     }
     _clearCurrentLog();

@@ -84,6 +84,7 @@ async def backup(config: dict):
     nas_ip = resolve_ip(host_name_in_ssh_config="nas")
     LOG.debug(f"obtained IP Address of NAS: {nas_ip}")
     backup_command = [
+        "sudo",
         "rsync",
         "-aH",
         "--stats",

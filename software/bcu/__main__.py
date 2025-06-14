@@ -91,8 +91,9 @@ async def backup(config: dict):
         "-aH",
         "--stats",
         "--delete",
+        f"--log-file={datetime.now().strftime('%Y-%m-%d')}_rsync.log",
         f"{nas_ip}::{source}/",
-        "/media/BackupHDD/backups"
+        "/media/BackupHDD/backups/current"
     ]
     LOG.debug(f"Backing up with command {' '.join(backup_command)}")
     process = await asyncio.create_subprocess_exec(
@@ -159,12 +160,15 @@ async def main() -> None:
     cfg = load_config(Path(args.config))
     await init(cfg["logger"])
     LOG.info(f"loading config file {args.config}")
-    await engage()
-    await backup(cfg["backup"])
+    try:
+        await engage()
+        await backup(cfg["backup"])
+    except RuntimeError:
+        LOG.error("Couldn't perform Backup. Disengaging and shutdown")
     await disengage()
-    await wait_before_shutdown(cfg)
-    await set_wakeup_time(config.get_sleep_time(cfg["process"]["time_between_backups"]))
     if not args.no_shutdown:
+        await wait_before_shutdown(cfg)
+        await set_wakeup_time(config.get_sleep_time(cfg["process"]["time_between_backups"]))
         await shutdown()
 
 

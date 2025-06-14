@@ -63,6 +63,8 @@ async def engage() -> None:
             break
         LOG.warning("mounting of backupHDD failed, try another time")
         trials += 1
+    if not Path('/media/BackupHDD').is_mount():
+        raise RuntimeError("couldn't mount BackupHDD. Aborting.")
 
 
 async def handle_output(pipe, log_func: Callable):
@@ -84,6 +86,7 @@ async def backup(config: dict):
     nas_ip = resolve_ip(host_name_in_ssh_config="nas")
     LOG.debug(f"obtained IP Address of NAS: {nas_ip}")
     backup_command = [
+        "sudo",
         "rsync",
         "-aH",
         "--stats",

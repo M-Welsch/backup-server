@@ -63,6 +63,8 @@ async def engage() -> None:
             break
         LOG.warning("mounting of backupHDD failed, try another time")
         trials += 1
+    if not Path('/media/BackupHDD').is_mount():
+        raise RuntimeError("couldn't mount BackupHDD. Aborting.")
 
 
 async def handle_output(pipe, log_func: Callable):
@@ -84,10 +86,12 @@ async def backup(config: dict):
     nas_ip = resolve_ip(host_name_in_ssh_config="nas")
     LOG.debug(f"obtained IP Address of NAS: {nas_ip}")
     backup_command = [
+        "sudo",
         "rsync",
         "-aH",
         "--stats",
         "--delete",
+        f"--log-file={datetime.now().strftime('%Y-%m-%d')}_rsync.log",
         f"{nas_ip}::{source}/",
         "/media/BackupHDD/backups/current"
     ]
@@ -156,12 +160,15 @@ async def main() -> None:
     cfg = load_config(Path(args.config))
     await init(cfg["logger"])
     LOG.info(f"loading config file {args.config}")
-    await engage()
-    await backup(cfg["backup"])
+    try:
+        await engage()
+        await backup(cfg["backup"])
+    except RuntimeError:
+        LOG.error("Couldn't perform Backup. Disengaging and shutdown")
     await disengage()
-    await wait_before_shutdown(cfg)
-    await set_wakeup_time(config.get_sleep_time(cfg["process"]["time_between_backups"]))
     if not args.no_shutdown:
+        await wait_before_shutdown(cfg)
+        await set_wakeup_time(config.get_sleep_time(cfg["process"]["time_between_backups"]))
         await shutdown()
 
 

@@ -152,6 +152,11 @@ async def shutdown():
     subprocess.call(["sudo", "/sbin/shutdown", "-h", "now"])
 
 
+async def reboot():
+    LOG.info("Rebooting BCU ...")
+    subprocess.call(["sudo", "/sbin/shutdown", "-r", "now"])
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-shutdown", default=False, required=False, action='store_true')
@@ -163,13 +168,16 @@ async def main() -> None:
     try:
         await engage()
         await backup(cfg["backup"])
-    except RuntimeError:
-        LOG.error("Couldn't perform Backup. Disengaging and shutdown")
-    await disengage()
-    if not args.no_shutdown:
-        await wait_before_shutdown(cfg)
-        await set_wakeup_time(config.get_sleep_time(cfg["process"]["time_between_backups"]))
-        await shutdown()
+        await disengage()
+        if not args.no_shutdown:
+            await wait_before_shutdown(cfg)
+            await set_wakeup_time(config.get_sleep_time(cfg["process"]["time_between_backups"]))
+            await shutdown()
+    except Exception as e:
+        logging.exception(e)
+        LOG.error("Something went wrong. Waiting 5 minute, then reboot and hope for the best.")
+        await asyncio.sleep(5 * 60)
+        await reboot()
 
 
 if __name__ == "__main__":

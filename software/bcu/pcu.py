@@ -1,15 +1,20 @@
 import asyncio
 import logging
+import subprocess
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
 
-from serial import Serial
+from serial import Serial, SerialException
 
 LOG = logging.getLogger(__name__)
 
 PCU_DEVICE_NODE = "/dev/ttyBASEPCU"
+
+
+class PcuStuckError(Exception):
+    pass
 
 
 class DockingState(Enum):
@@ -189,13 +194,34 @@ class set:
             raise NotImplementedError
 
 
+async def _restart_xhci():
+    xhci_controller_device = "0000:01:00.0"
+    subprocess.call(f'echo -n {xhci_controller_device} | sudo tee /sys/bus/pci/drivers/xhci_hcd/unbind', shell=True)
+    await asyncio.sleep(2)
+    subprocess.call(f'echo -n {xhci_controller_device} | sudo tee /sys/bus/pci/drivers/xhci_hcd/bind', shell=True)
+    await asyncio.sleep(2)
+
+
+async def _call_pcu(command: str, trials: int = 3) -> bytes:
+    command_bytes = (command + "\r\n").encode()
+    try:
+        with Serial(PCU_DEVICE_NODE, baudrate=38400, timeout=1) as ser:  # timeout is critical
+            ser.write(command_bytes)
+            await asyncio.sleep(0.5)
+            output = ser.read_until("ch>")
+    except SerialException as e:
+        logging.exception(e)
+        if trials:
+            await _restart_xhci()
+            await _call_pcu(command, trials-1)
+        else:
+            raise PcuStuckError
+    return output
+
+
 async def call_pcu(command: str) -> str:
     LOG.debug(f"calling pcu with {command}")
-    command_bytes = (command + "\r\n").encode()
-    with Serial(PCU_DEVICE_NODE, baudrate=38400, timeout=1) as ser:  # timeout is critical
-        ser.write(command_bytes)
-        await asyncio.sleep(0.5)
-        output = ser.read_until("ch>")
+    output = await _call_pcu(command)
     output = output.decode().split("\n")
     LOG.debug(f"received {output}")
     output = [o.strip() for o in output]

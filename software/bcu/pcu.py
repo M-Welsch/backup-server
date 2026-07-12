@@ -209,11 +209,11 @@ async def _call_pcu(command: str, trials: int = 3) -> bytes:
             ser.write(command_bytes)
             await asyncio.sleep(0.5)
             output = ser.read_until("ch>")
-    except SerialException as e:
+    except (SerialException, FileNotFoundError) as e:
         logging.exception(e)
         if trials:
             await _restart_xhci()
-            await _call_pcu(command, trials-1)
+            output = await _call_pcu(command, trials-1)
         else:
             raise PcuStuckError
     return output

@@ -2,6 +2,10 @@ comment: "backup server configuration for normal operation"
 logger:
   filename: 'logfile.log'
 
+debug:
+  remote_logging_logfile_path: '/mnt/hdd/share/Maintenance/base.log'
+  remote_ssh_connect_string: 'root@192.168.0.11'
+
 backup:
   nas_name_in_ssh_config: nas
   rsync_source: backup_data_source

@@ -9,6 +9,7 @@ from typing import Callable
 import config
 import pcu
 from config import load_config
+from remote_logging import copy_logfile_to_nas
 
 LOG = logging.getLogger(__name__)
 
@@ -137,12 +138,13 @@ async def wait_before_shutdown(cfg):
 
 
 async def set_wakeup_time(sleep_time: timedelta) -> None:
-    LOG.info("Programming PCU. Setting current time and time for next wakeup")
-    await pcu.set.date.now(datetime.now())
+    _now = datetime.now()
+    LOG.info(f"Programming PCU. Setting current time and time for next wakeup. Now is {_now.isoformat()}")
+    await pcu.set.date.now(_now)
     LOG.debug(f"read current time from pcu: {await pcu.get.date.now()}")
-    await pcu.set.date.wakeup(datetime.now() + sleep_time)
+    await pcu.set.date.wakeup(_now + sleep_time)
     LOG.debug(f"read wakeup time from pcu: {await pcu.get.date.wakeup()}")
-    await pcu.set.date.backup(datetime.now() + sleep_time)
+    await pcu.set.date.backup(_now + sleep_time)
     LOG.debug(f"read backup time from pcu: {await pcu.get.date.backup()}")
 
 
@@ -172,6 +174,7 @@ async def main() -> None:
         if not args.no_shutdown:
             await wait_before_shutdown(cfg)
             await set_wakeup_time(config.get_sleep_time(cfg["process"]["time_between_backups"]))
+            await copy_logfile_to_nas(cfg)
             await shutdown()
     except Exception as e:
         logging.exception(e)

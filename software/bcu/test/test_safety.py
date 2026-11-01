@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 import os
 import shutil
 import sys
@@ -37,6 +38,69 @@ def test_checked_subprocess_drains_both_pipes_and_checks_exit():
 def test_checked_subprocess_timeout():
     with pytest.raises(asyncio.TimeoutError):
         run(run_checked(sys.executable, "-c", "import time; time.sleep(60)", timeout=0.05))
+
+
+def test_quiet_successful_command_produces_no_logs(caplog):
+    caplog.set_level(logging.DEBUG, logger="process_ops")
+    assert run(run_checked(sys.executable, "-c", "print('healthy poll')", log_success=False)) == "healthy poll\n"
+    assert not [record for record in caplog.records if record.name == "process_ops"]
+
+
+def test_quiet_command_preserves_failure_output(caplog):
+    with pytest.raises(RuntimeError):
+        run(run_checked(
+            sys.executable, "-c", "import sys; print('mount details'); print('device lost', file=sys.stderr); sys.exit(1)",
+            log_success=False,
+        ))
+    assert "mount details" in caplog.text
+    assert "device lost" in caplog.text
+    assert "exited 1" in caplog.text
+
+
+def test_quiet_command_preserves_timeout_context(caplog):
+    with pytest.raises(asyncio.TimeoutError):
+        run(run_checked(sys.executable, "-c", "import time; time.sleep(60)", timeout=0.05, log_success=False))
+    assert "time.sleep(60)" in caplog.text
+    assert "timeout=0.05s" in caplog.text
+    assert "aborted" in caplog.text
+
+
+def test_quiet_command_preserves_spawn_failure(caplog, monkeypatch):
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", AsyncMock(side_effect=OSError("spawn failed")))
+    with pytest.raises(OSError, match="spawn failed"):
+        run(run_checked("findmnt", log_success=False))
+    assert "findmnt" in caplog.text
+    assert "spawn failed" in caplog.text
+
+
+def test_quiet_command_preserves_successful_stderr(caplog):
+    run(run_checked(sys.executable, "-c", "import sys; print('probe warning', file=sys.stderr)", log_success=False))
+    assert "probe warning" in caplog.text
+
+
+def test_quiet_poll_cancellation_is_not_logged_as_failure(caplog, monkeypatch):
+    caplog.set_level(logging.DEBUG, logger="process_ops")
+    real_spawn = asyncio.create_subprocess_exec
+
+    async def cancel_poll():
+        started = asyncio.Event()
+
+        async def spawn(*args, **kwargs):
+            process = await real_spawn(*args, **kwargs)
+            started.set()
+            return process
+
+        monkeypatch.setattr(asyncio, "create_subprocess_exec", spawn)
+        task = asyncio.create_task(run_checked(
+            sys.executable, "-c", "import time; time.sleep(60)", log_success=False,
+        ))
+        await started.wait()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    run(cancel_poll())
+    assert not [record for record in caplog.records if record.name == "process_ops"]
 
 
 @pytest.mark.parametrize("code", [0, 23, 24])
@@ -117,6 +181,36 @@ def test_mount_uuid_must_match(fake_storage):
     execute.return_value = json.dumps({"filesystems": [mount]})
     with pytest.raises(RuntimeError, match="UUID/options mismatch"):
         run(disk.verify())
+
+
+def test_storage_polls_are_quiet_with_one_initial_summary(fake_storage, caplog):
+    disk, mount, execute, _, _ = fake_storage
+    execute.side_effect = [json.dumps({"filesystems": [mount]}), "accessible"] * 3
+    caplog.set_level(logging.DEBUG, logger="storage")
+    for _ in range(3):
+        run(disk.verify(access=True))
+    summaries = [record for record in caplog.records if record.name == "storage"]
+    assert len(summaries) == 1
+    summary = summaries[0].getMessage()
+    assert "/media/BackupHDD" in summary
+    assert UUID in summary
+    assert "device=0:0 mode=rw" in summary
+    assert all(call.kwargs["log_success"] is False for call in execute.await_args_list)
+
+
+def test_failed_access_does_not_log_successful_validation(fake_storage, caplog):
+    disk, mount, execute, _, _ = fake_storage
+    execute.side_effect = [json.dumps({"filesystems": [mount]}), OSError("probe failed")]
+    caplog.set_level(logging.INFO, logger="storage")
+    with pytest.raises(OSError, match="probe failed"):
+        run(disk.verify(access=True))
+    assert "Backup storage verified" not in caplog.text
+
+
+def test_mount_presence_query_is_quiet(fake_storage):
+    disk, _, execute, _, _ = fake_storage
+    assert run(disk.mounted()) is True
+    assert execute.call_args.kwargs["log_success"] is False
 
 
 def test_readonly_mount_rejected(fake_storage):

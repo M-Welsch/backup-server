@@ -1,3 +1,2 @@
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="b45e", SYMLINK+="ttyBASEPCU"
-ACTION=="add", SUBSYSTEM=="block", ATTRS{idVendor}=="0951", ATTRS{idProduct}=="1666", SYMLINK+="BACKUPHDD"
-ACTION=="add", SUBSYSTEM=="block", ATTRS{idVendor}=="152d", ATTRS{idProduct}=="0578", SYMLINK+="BACKUPHDD"
+ACTION=="add|change", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_UUID}=="bf117632-4982-44fd-a113-7b4fd682d9be", SYMLINK+="BACKUPHDD"

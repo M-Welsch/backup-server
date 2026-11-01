@@ -10,6 +10,8 @@ from serial import Serial
 LOG = logging.getLogger(__name__)
 
 PCU_DEVICE_NODE = "/dev/ttyBASEPCU"
+COMMAND_TIMEOUT_SECONDS = 20
+_serial_lock = asyncio.Lock()
 
 
 class DockingState(Enum):
@@ -192,11 +194,23 @@ class set:
 async def call_pcu(command: str) -> str:
     LOG.debug(f"calling pcu with {command}")
     command_bytes = (command + "\r\n").encode()
-    with Serial(PCU_DEVICE_NODE, baudrate=38400, timeout=1) as ser:  # timeout is critical
-        ser.write(command_bytes)
-        await asyncio.sleep(0.5)
-        output = ser.read_until("ch>")
-    output = output.decode().split("\n")
+    async with _serial_lock:
+        # Nonblocking reads and an absolute deadline: a trickle of output must
+        # not extend the timeout indefinitely. Writes also have a finite limit.
+        with Serial(PCU_DEVICE_NODE, baudrate=38400, timeout=0, write_timeout=1) as ser:
+            ser.reset_input_buffer()
+            if ser.write(command_bytes) != len(command_bytes):
+                raise RuntimeError("Incomplete PCU command write: {!r}".format(command))
+            deadline = asyncio.get_running_loop().time() + COMMAND_TIMEOUT_SECONDS
+            response = bytearray()
+            while not response.rstrip().endswith(b"ch>"):
+                response.extend(ser.read(ser.in_waiting or 1))
+                if len(response) > 65536:
+                    raise RuntimeError("Oversized PCU response to {!r}".format(command))
+                if asyncio.get_running_loop().time() >= deadline:
+                    raise TimeoutError("PCU response timeout for {!r}: {!r}".format(command, bytes(response)))
+                await asyncio.sleep(0.02)
+    output = response.decode().split("\n")
     LOG.debug(f"received {output}")
     output = [o.strip() for o in output]
     filtered = _filter_output_payload(output, command)
@@ -251,6 +265,8 @@ class DigitalMeasurement(Enum):
 
 async def _get_digital(measurement: DigitalMeasurement) -> bool:
     result = await call_pcu("get digital " + measurement.value)
+    if result not in ("true", "false"):
+        raise RuntimeError("Invalid PCU digital response: {!r}".format(result))
     return result == "true"
 
 
@@ -267,23 +283,26 @@ def _filter_output_payload(pcu_outputs: List[str], command_sent: str) -> List[st
     """
     filtered = []
     for pcu_output in pcu_outputs:
-        if "ch>" in pcu_output:
-            filtered.append(pcu_output.split("ch>")[1])
-        elif any(
-            [
-                command_sent in pcu_output,
-            ]
-        ):
-            continue
-        else:
-            filtered.append(pcu_output)
-    filtered = [filtered_item for filtered_item in filtered if filtered_item]
+        text = pcu_output.strip()
+        while text.startswith("ch>"):
+            text = text[3:].strip()
+        if text.endswith("ch>"):
+            text = text[:-3].strip()
+        if text and text != command_sent:
+            filtered.append(text)
     return filtered
 
 
 async def check_messages(timeout_secs: float) -> Optional[List[str]]:
-    with Serial("/dev/ttyBASEPCU", baudrate=38400, timeout=timeout_secs) as ser:  # timeout is critical
-        output = ser.read_until()
+    async with _serial_lock:
+        with Serial(PCU_DEVICE_NODE, baudrate=38400, timeout=0, write_timeout=1) as ser:
+            deadline = asyncio.get_running_loop().time() + timeout_secs
+            output = bytearray()
+            while b"\n" not in output and asyncio.get_running_loop().time() < deadline:
+                output.extend(ser.read(ser.in_waiting or 1))
+                if len(output) > 65536:
+                    raise RuntimeError("Oversized PCU message")
+                await asyncio.sleep(0.02)
     output = output.decode().split("\n")
     LOG.debug(f"received {output}")
     return [o.strip() for o in output]
@@ -300,21 +319,21 @@ class Commands(Enum):
 async def _send_command(command: Commands, *args) -> str:  # type: ignore
     command_str = "cmd " + command.value + " " + " ".join(args)
     output_raw = await call_pcu(command_str)
-    if f"{command.value} successful" not in output_raw:
-        raise RuntimeError
+    if f"{command.value} successful" not in output_raw.split(", "):
+        raise RuntimeError("PCU command {!r} failed: {!r}".format(command_str, output_raw))
     return output_raw
 
 
 async def _dock_and_verify() -> bool:
     result = await call_pcu("cmd dock")
     docked = await _get_digital(DigitalMeasurement.DOCKED)
-    return "successful" in result and docked
+    return "dock successful" in result.split(", ") and docked
 
 
 async def _undock_and_verify() -> bool:
     result = await call_pcu("cmd undock")
     undocked = await _get_digital(DigitalMeasurement.UNDOCKED_ENDSWITCH)
-    return "successful" in result and undocked
+    return "undock successful" in result.split(", ") and undocked
 
 
 class DateKind(Enum):
@@ -354,8 +373,16 @@ class DesiredState(Enum):
 
 
 async def power(rail: VoltageRail, state: DesiredState) -> None:
-    command = "cmd power " + rail.value + " " + state.value
-    await call_pcu(command)
+    await _send_command(Commands.power, rail.value, state.value)
+    if rail == VoltageRail.hdd:
+        observed = await get.dockingstate()
+        allowed = {DockingState.pcu_dockingState3_allDockedPwrOn} if state == DesiredState.on else {
+            DockingState.pcu_dockingState2_allDockedPwrOff,
+            DockingState.pcu_dockingState1_undocked,
+            DockingState.pcu_dockingState9_inbetween,
+        }
+        if observed not in allowed:
+            raise RuntimeError("HDD power {} not confirmed: {}".format(state.value, observed.value))
 
 
 async def is_powered() -> bool:

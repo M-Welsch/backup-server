@@ -5,8 +5,23 @@ logger:
 backup:
   nas_name_in_ssh_config: nas
   rsync_source: backup_data_source
+  filesystem_uuid: bf117632-4982-44fd-a113-7b4fd682d9be
+  mountpoint: /media/BackupHDD
+  destination: backups/current
+  storage_timeout_seconds: 15
+  monitor_interval_seconds: 2
+  backup_timeout_seconds: 86400
+  integrity:
+    interval_days: 7
+    timeout_seconds: 86400
+    restore_timeout_seconds: 300
+    restore_samples: 5
+    restore_max_file_bytes: 67108864
 
 process:
+  state_file: /home/base/.local/state/bcu/state.json
+  maximum_reboots: 2
+  pcu_timeout_seconds: 30
   seconds_between_backup_end_and_shutdown: 300
   time_between_backups:
     days: 1

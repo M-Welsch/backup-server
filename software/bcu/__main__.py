@@ -95,7 +95,7 @@ async def resolve_ip(host_name_in_ssh_config: str) -> str:
     raise RuntimeError("No hostname in SSH configuration")
 
 
-async def monitored_transfer(command, storage, timeout, interval=2, reject_output=False):
+async def monitored_transfer(command, storage, timeout, interval=2):
     await storage.verify(access=True)
     process = await asyncio.create_subprocess_exec(
         *command,
@@ -103,16 +103,9 @@ async def monitored_transfer(command, storage, timeout, interval=2, reject_outpu
         stderr=subprocess.PIPE,
         start_new_session=True,
     )
-    changed = False
-
-    def stdout_log(line):
-        nonlocal changed
-        changed = True
-        LOG.debug(line)
-
     stream_tasks = [
         asyncio.create_task(process.wait()),
-        asyncio.create_task(handle_output(process.stdout, stdout_log)),
+        asyncio.create_task(handle_output(process.stdout, LOG.debug)),
         asyncio.create_task(handle_output(process.stderr, LOG.error)),
     ]
 
@@ -120,8 +113,6 @@ async def monitored_transfer(command, storage, timeout, interval=2, reject_outpu
         await asyncio.gather(*stream_tasks)
         if process.returncode != 0:
             raise RuntimeError("rsync failed: {}".format(process.returncode))
-        if reject_output and changed:
-            raise RuntimeError("Checksum verification found differences from the NAS source")
 
     async def monitor():
         while True:
@@ -133,7 +124,7 @@ async def monitored_transfer(command, storage, timeout, interval=2, reject_outpu
     try:
         done, _ = await asyncio.wait({completed, monitoring}, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
         if not done:
-            raise TimeoutError("Backup/verification exceeded {} seconds".format(timeout))
+            raise TimeoutError("Backup exceeded {} seconds".format(timeout))
         for task in done:
             await task
         # Final storage validation is required even after rsync exit 0.
@@ -165,11 +156,7 @@ async def backup(cfg, storage, state):
     integrity = cfg.get("integrity", {})
     due = state.data["last_integrity_check"] + integrity.get("interval_days", 7) * 86400 <= time.time()
     if due:
-        LOG.info("Starting periodic NAS-to-backup checksum verification")
-        await monitored_transfer(
-            storage.worker_command("transfer", *command, "--checksum", "--dry-run", "--itemize-changes", source, "."),
-            storage, integrity.get("timeout_seconds", 86400), interval, reject_output=True,
-        )
+        LOG.info("Starting periodic sample restore verification (full NAS checksum comparison disabled)")
         state.path.parent.mkdir(parents=True, exist_ok=True)
         restored = await run_checked(
             *storage.worker_command("restore", str(state.path.parent), str(integrity.get("restore_samples", 5)),

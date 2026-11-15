@@ -32,7 +32,7 @@ are desired; diagnostic permission failures are logged but do not block cleanup.
 
 - rsync exit codes, mount results, UUID, read/write mount options, device instance,
   and directory accessibility are checked. A reconnect does not heal a stale mount.
-- Transfer and checksum verification are monitored and have absolute timeouts.
+- Transfers are monitored and have absolute timeouts; sample restore checks also have a timeout.
   Filesystem probes run in separate disposable processes.
 - After an error, bounded diagnostics are collected and rsync is stopped. BCU
   attempts unmount, power-off, and undocking. PCU acknowledgments and observable
@@ -61,22 +61,24 @@ still required to guarantee isolation when the host cannot control it.
 
 ## Verification and logging
 
-On the first transfer and every seven days afterward, BCU performs a **read-only
-rsync checksum dry run** against the NAS, including detection of unexpected
-destination files. Any reported difference or nonzero exit code fails verification.
-Use a stable NAS source/snapshot: source changes between transfer and comparison
-can legitimately cause differences.
+Full NAS-to-backup checksum verification has been removed for now: it repeatedly
+failed and required approximately 12 hours per pass. Findings and follow-up work
+are recorded in [issue.md](issue.md). A successful cycle does **not** establish
+that all backup contents match the NAS; normal rsync still uses size/mtime checks.
 
-BCU then restores up to five randomly selected regular files of at most 64 MiB
+On the first successful transfer and every seven days afterward, BCU restores
+up to five randomly selected regular files of at most 64 MiB
 each to a temporary directory beside the Pi's state file, verifies content using
 a local rsync checksum dry run, and removes its temporary copies. File paths and
 restored-file SHA-256 checksums are logged. Sample selection traverses directories
-readable by `base`; the full NAS checksum pass uses privileged rsync for all files.
+readable by `base`. The local sample checksum comparison remains; it only checks
+the restored samples against their HDD originals, not against the NAS.
 No eligible files is a verification failure. These are content restore smoke
 tests, not a substitute for application-level/full disaster-recovery exercises.
-Full checksum passes can read the entire backup and NAS dataset; tune the
-`backup.integrity` interval, timeouts, and sample limits for the available window.
-Any failed cycle invalidates the verification timestamp.
+Tune `backup.integrity.interval_days`, `restore_timeout_seconds`, and sample limits
+for the available window. `last_integrity_check` in the persisted state now tracks
+sample restore checks only; the existing state format remains compatible.
+Any failed cycle invalidates that timestamp.
 
 Logs stay on the Pi (`logger.filename`) and distinguish transfer, verification,
 clean isolation, emergency power-off, and overall cycle failures. Optional remote

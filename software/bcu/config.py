@@ -43,7 +43,7 @@ def validate_config(cfg):
         raise ValueError("Recovery state must live on the Pi, not on the backup HDD")
     limits = (
         (backup, ("storage_timeout_seconds", "monitor_interval_seconds", "backup_timeout_seconds"), False),
-        (backup.get("integrity", {}), ("interval_days", "timeout_seconds", "restore_timeout_seconds",
+        (backup.get("integrity", {}), ("interval_days", "restore_timeout_seconds",
                                      "restore_samples", "restore_max_file_bytes"), False),
         (process, ("pcu_timeout_seconds",), False),
         (process, ("seconds_between_backup_end_and_shutdown", "maximum_reboots"), True),

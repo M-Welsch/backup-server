@@ -116,10 +116,9 @@ def test_rsync_exit_codes_and_output(bcu, code, caplog):
     assert "stderr" in caplog.text
 
 
-def test_checksum_differences_fail_even_with_exit_zero(bcu):
+def test_successful_transfer_output_does_not_fail_backup(bcu):
     disk = SimpleNamespace(verify=AsyncMock())
-    with pytest.raises(RuntimeError, match="differences"):
-        run(bcu.monitored_transfer([sys.executable, "-c", "print('>fcs....... changed')"], disk, 5, reject_output=True))
+    run(bcu.monitored_transfer([sys.executable, "-c", "print('transfer statistics')"], disk, 5))
 
 
 def test_disappearance_stops_running_transfer(bcu):
@@ -683,7 +682,7 @@ def test_shutdown_halts_pi_even_when_pcu_is_unreachable(bcu, monkeypatch):
 
 
 @pytest.mark.parametrize("recent", [False, True])
-def test_periodic_integrity_schedule_and_readonly_comparison(bcu, tmp_path, monkeypatch, recent):
+def test_periodic_restore_schedule_without_nas_checksum_comparison(bcu, tmp_path, monkeypatch, recent):
     disk = SimpleNamespace(
         verify=AsyncMock(), worker_command=lambda operation, *args: ["worker", operation, *args],
     )
@@ -695,29 +694,29 @@ def test_periodic_integrity_schedule_and_readonly_comparison(bcu, tmp_path, monk
     execute = AsyncMock(return_value='[{"path": "sample", "sha256": "hash"}]')
     monkeypatch.setattr(bcu, "run_checked", execute)
     run(bcu.backup({"rsync_source": "source"}, disk, state))
-    assert transfer.await_count == (1 if recent else 2)
+    assert transfer.await_count == 1
     first_command = transfer.await_args_list[0].args[0]
     assert first_command[-1] == "."
     assert "--dry-run" not in first_command
+    assert "--checksum" not in first_command
+    assert "--itemize-changes" not in first_command
     if not recent:
-        comparison = transfer.await_args_list[1]
-        assert "--dry-run" in comparison.args[0]
-        assert "--checksum" in comparison.args[0]
-        assert comparison.kwargs["reject_output"] is True
+        execute.assert_awaited_once()
         assert execute.call_args.args[1] == "restore"
         assert state.data["last_integrity_check"] > 0
     else:
         execute.assert_not_awaited()
 
 
-def test_failed_verification_does_not_advance_schedule(bcu, tmp_path, monkeypatch):
+def test_failed_sample_restore_does_not_advance_schedule(bcu, tmp_path, monkeypatch):
     disk = SimpleNamespace(
         verify=AsyncMock(), worker_command=lambda operation, *args: ["worker", operation, *args],
     )
     state = RecoveryState(tmp_path / "state.json")
     monkeypatch.setattr(bcu, "resolve_ip", AsyncMock(return_value="192.0.2.1"))
-    monkeypatch.setattr(bcu, "monitored_transfer", AsyncMock(side_effect=[None, RuntimeError("different")]))
-    with pytest.raises(RuntimeError, match="different"):
+    monkeypatch.setattr(bcu, "monitored_transfer", AsyncMock())
+    monkeypatch.setattr(bcu, "run_checked", AsyncMock(side_effect=RuntimeError("restore failed")))
+    with pytest.raises(RuntimeError, match="restore failed"):
         run(bcu.backup({"rsync_source": "source"}, disk, state))
     assert state.data["last_integrity_check"] == 0
 

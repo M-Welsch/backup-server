@@ -13,7 +13,6 @@ backup:
   backup_timeout_seconds: 86400
   integrity:
     interval_days: 7
-    timeout_seconds: 86400
     restore_timeout_seconds: 300
     restore_samples: 5
     restore_max_file_bytes: 67108864
